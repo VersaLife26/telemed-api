@@ -1,0 +1,73 @@
+# Local development stack: Postgres plus the API built from this repo.
+# Every third-party integration is swapped for its local stand-in and every test switch is on, so the API logs a
+# TEST SWITCHES ENABLED banner at startup. Never reuse these keys or switches outside a developer machine.
+name: telemed
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: telemed
+      POSTGRES_USER: telemed
+      POSTGRES_PASSWORD: telemed
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U telemed -d telemed"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - api-files:/var/lib/telemed/files
+    environment:
+      Database__ConnectionString: Host=postgres;Port=5432;Database=telemed;Username=telemed;Password=telemed;GSS Encryption Mode=Disable
+      Database__MigrateOnStartup: "true"
+
+      Auth__Jwt__SigningKey: dev-only-jwt-signing-key-change-me-0123456789
+      Otp__HmacKey: dev-only-otp-hmac-key-change-me-0123456789
+      Storage__RootPath: /var/lib/telemed/files
+      Storage__SigningKey: dev-only-storage-signing-key-change-me-0123
+      Crypto__BankDataKey: ZGV2LW9ubHktYmFuay1kYXRhLWtleS0zMi1ieXRlcyE=
+      Video__RoomTokenKey: dev-only-room-token-key-change-me-0123456789
+      Prescriptions__HmacKey: dev-only-prescription-hmac-key-change-me-0123
+      Prescriptions__VerifyBaseUrl: http://localhost:3000
+      AppLinks__PatientAppUrl: http://localhost:3000
+      Cors__Origins__0: http://localhost:3000
+      Cors__AdminOrigins__0: http://localhost:3001
+
+      # Capture senders write SMS and email to captured_messages, readable through /api/v1/test/captured-messages.
+      Sms__Provider: Capture
+      Email__Provider: Capture
+      Email__FromAddress: no-reply@telemed.local
+      Payments__Mock__Enabled: "true"
+      Turn__Provider: None
+
+      Testing__SharedSecret: dev-only-test-secret
+      Testing__CaptureInbox__Enabled: "true"
+      Testing__InstantMeetings__Enabled: "true"
+
+      # Admin API: local HS256 tokens instead of Cloudflare Access, open to any IP. The bootstrap email becomes super_admin.
+      AdminAuth__CloudflareAccess__Enabled: "false"
+      AdminAuth__LocalJwt__Enabled: "true"
+      AdminAuth__LocalJwt__SigningKey: dev-only-admin-jwt-signing-key-change-me-0123
+      AdminAuth__AllowAnyIp: "true"
+      AdminAuth__BootstrapSuperAdminEmail: admin@telemed.local
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /health/ready HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \" 200 \" <&3'"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+volumes:
+  postgres-data:
+  api-files:
