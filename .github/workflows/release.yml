@@ -1,0 +1,80 @@
+name: release
+
+# Tests every push and pull request. On main it also builds the image, pushes it to GHCR and asks
+# versalife-docker to deploy it. The image is built here, never on the VPS: an SDK build on a 3.5 GB box
+# competes with Postgres for memory.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - run: dotnet restore TeleMed.slnx
+
+      - run: dotnet build TeleMed.slnx -c Release --no-restore
+
+      # The integration tests start Postgres through Testcontainers, which uses the runner's Docker.
+      - run: dotnet test --solution TeleMed.slnx -c Release --no-build
+
+  image:
+    needs: [test]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/versalife26/telemed-api:latest
+            ghcr.io/versalife26/telemed-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+  deploy:
+    needs: [image]
+    runs-on: ubuntu-latest
+    steps:
+      # Needs a token with Actions: write on versalife-docker; GITHUB_TOKEN cannot reach another repo.
+      - name: dispatch versalife-docker deploy
+        env:
+          GH_TOKEN: ${{ secrets.VERSALIFE_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::VERSALIFE_DEPLOY_TOKEN is not set; the image was pushed but not deployed. Run: gh workflow run deploy -R VersaLife26/versalife-docker"
+            exit 0
+          fi
+          gh workflow run deploy -R VersaLife26/versalife-docker
