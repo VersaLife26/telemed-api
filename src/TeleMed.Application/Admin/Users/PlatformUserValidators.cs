@@ -21,3 +21,11 @@ public sealed class SuspendUserRequestValidator : AbstractValidator<SuspendUserR
         RuleFor(x => x.Reason).NotEmpty().MaximumLength(1000);
     }
 }
+
+public sealed class ResetUserPasswordRequestValidator : AbstractValidator<ResetUserPasswordRequest>
+{
+    public ResetUserPasswordRequestValidator()
+    {
+        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(8).MaximumLength(128);
+    }
+}

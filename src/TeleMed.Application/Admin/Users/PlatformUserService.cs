@@ -119,6 +119,22 @@ public sealed class PlatformUserService(
         return await GetAsync(id, ct);
     }
 
+    public async Task ResetPasswordAsync(Guid id, ResetUserPasswordRequest request, CancellationToken ct)
+    {
+        actor.RequireAdmin();
+        var user = await LoadAsync(id, ct);
+        if (user.Status == UserStatus.Deleted)
+        {
+            throw new ConflictException("user_deleted", "Cannot reset password for a deleted user.");
+        }
+
+        await using var transaction = await unitOfWork.BeginTransactionAsync(ct);
+        await accounts.ResetPasswordAsync(user, request.NewPassword);
+        await sessions.RevokeAllAsync(user, ct);
+        await unitOfWork.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+    }
+
     private async Task<User> LoadAsync(Guid id, CancellationToken ct) => await accounts.FindByIdAsync(id, ct) ?? throw NotFound();
 
     private static NotFoundException NotFound() => new("User not found.");

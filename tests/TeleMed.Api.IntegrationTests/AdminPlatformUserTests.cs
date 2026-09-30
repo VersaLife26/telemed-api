@@ -132,4 +132,29 @@ public class AdminPlatformUserTests(ApiFixture fixture) : IntegrationTest(fixtur
         stillSuspended.Status.ShouldBe(DoctorStatus.Suspended);
         stillSuspended.SuspendedReason.ShouldBe("Complaint");
     }
+
+    [Fact]
+    public async Task Admin_can_reset_user_password_and_revoke_active_sessions()
+    {
+        var auth = await Factory.CreateUserAsync(UserRole.Patient, "resetme@example.com", "old password 123");
+        var patient = Factory.CreateClient().WithBearer(auth.AccessToken);
+        var admin = await Factory.AdminClientAsync(AdminRole.Admin);
+
+        (await patient.GetAsync("/api/v1/me", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var response = await admin.PostJsonAsync($"/api/v1/admin/users/{auth.User.Id}/reset-password", new { newPassword = "new password 456" });
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        (await patient.GetAsync("/api/v1/me", Ct)).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+
+        var oldLogin = await Factory.CreateClient().PostJsonAsync("/api/v1/auth/login/email", new { email = "resetme@example.com", password = "old password 123" });
+        oldLogin.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+
+        var newLogin = await (await Factory.CreateClient().PostJsonAsync("/api/v1/auth/login/email", new { email = "resetme@example.com", password = "new password 456" }))
+            .ReadAsync<AuthResponse>();
+        newLogin.AccessToken.ShouldNotBeNullOrWhiteSpace();
+
+        var freshClient = Factory.CreateClient().WithBearer(newLogin.AccessToken);
+        (await freshClient.GetAsync("/api/v1/me", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
 }

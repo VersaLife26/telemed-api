@@ -4,5 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 </Project>

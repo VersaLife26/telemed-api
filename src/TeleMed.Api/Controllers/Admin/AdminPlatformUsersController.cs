@@ -27,4 +27,12 @@ public sealed class AdminPlatformUsersController(PlatformUserService users) : Co
 
     [HttpPost("{id:guid}/reinstate")]
     public Task<PlatformUserDetailDto> Reinstate(Guid id, CancellationToken ct) => users.ReinstateAsync(id, ct);
+
+    [HttpPost("{id:guid}/reset-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<NoContentResult> ResetPassword(Guid id, ResetUserPasswordRequest request, CancellationToken ct)
+    {
+        await users.ResetPasswordAsync(id, request, ct);
+        return NoContent();
+    }
 }

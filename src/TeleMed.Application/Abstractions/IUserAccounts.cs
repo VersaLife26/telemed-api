@@ -14,6 +14,7 @@ public interface IUserAccounts
     void AddLogin(User user, string provider, string key);
     Task<PasswordCheck> CheckPasswordAsync(User? user, string password);
     Task SetPasswordAsync(User user, string? currentPassword, string newPassword);
+    Task ResetPasswordAsync(User user, string newPassword);
     Task RemovePasswordAsync(User user);
     Task UpdateAsync(User user);
     Task UpdateSecurityStampAsync(User user);

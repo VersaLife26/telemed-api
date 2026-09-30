@@ -97,6 +97,17 @@ internal sealed class UserAccounts(UserManager<User> users, AppDbContext db, Ses
         sessions.Evict(user.Id);
     }
 
+    public async Task ResetPasswordAsync(User user, string newPassword)
+    {
+        if (user.PasswordHash is not null)
+        {
+            ThrowIfFailed(await users.RemovePasswordAsync(user), "user");
+        }
+
+        ThrowIfFailed(await users.AddPasswordAsync(user, newPassword), "newPassword");
+        sessions.Evict(user.Id);
+    }
+
     public async Task RemovePasswordAsync(User user)
     {
         ThrowIfFailed(await users.RemovePasswordAsync(user), "user");

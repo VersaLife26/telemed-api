@@ -45,3 +45,5 @@ public sealed record PlatformUserQuery : PageQuery
 }
 
 public sealed record SuspendUserRequest(string Reason);
+
+public sealed record ResetUserPasswordRequest(string NewPassword);
