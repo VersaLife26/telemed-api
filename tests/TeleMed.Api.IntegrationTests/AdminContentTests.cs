@@ -108,6 +108,75 @@ public class AdminContentTests(ApiFixture fixture) : IntegrationTest(fixture)
         badDrug.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task Waiting_room_item_lifecycle_is_visible_to_patients()
+    {
+        var admin = await Factory.AdminClientAsync(AdminRole.Support);
+        var patient = Factory.CreateClient().WithBearer((await Factory.CreateUserAsync(UserRole.Patient)).AccessToken);
+        var doctor = Factory.CreateClient().WithBearer((await Factory.CreateUserAsync(UserRole.Doctor)).AccessToken);
+
+        var created = await (await admin.PostJsonAsync("/api/v1/admin/waiting-room-items", new
+        {
+            kind = "article",
+            title = " How to prepare ",
+            body = "Bring your reports.",
+            displayOrder = 10,
+        })).ReadAsync<AdminWaitingRoomItemDto>(HttpStatusCode.Created);
+        var withImage = await (await admin.PutAsync($"/api/v1/admin/waiting-room-items/{created.Id}/image",
+                DoctorFlows.File(DoctorFlows.Png, "hero.png", "image/png"), TestContext.Current.CancellationToken))
+            .ReadAsync<AdminWaitingRoomItemDto>();
+        var ad = await (await admin.PostJsonAsync("/api/v1/admin/waiting-room-items", new
+        {
+            kind = "ad",
+            title = "VersaLife Health",
+            body = "Care from home.",
+            linkUrl = "https://versalifehealth.com",
+            videoUrl = "https://example.com/ad.mp4",
+            displayOrder = 20,
+        })).ReadAsync<AdminWaitingRoomItemDto>(HttpStatusCode.Created);
+
+        var published = await (await patient.GetAsync("/api/v1/waiting-room-content", TestContext.Current.CancellationToken))
+            .ReadAsync<List<WaitingRoomItemDto>>();
+        (await Factory.CreateClient().GetAsync("/api/v1/waiting-room-content", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        (await doctor.GetAsync("/api/v1/waiting-room-content", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+
+        var file = await Factory.CreateClient().GetAsync(withImage.ImageUrl!, TestContext.Current.CancellationToken);
+        (await admin.DeleteAsync($"/api/v1/admin/waiting-room-items/{created.Id}", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        var afterHide = await (await patient.GetAsync("/api/v1/waiting-room-content", TestContext.Current.CancellationToken))
+            .ReadAsync<List<WaitingRoomItemDto>>();
+        (await admin.DeleteAsync($"/api/v1/admin/waiting-room-items/{ad.Id}/image", TestContext.Current.CancellationToken))
+            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+
+        created.Title.ShouldBe("How to prepare");
+        created.Kind.ShouldBe(WaitingRoomItemKind.Article);
+        withImage.ImageUrl.ShouldNotBeNull();
+        file.StatusCode.ShouldBe(HttpStatusCode.OK);
+        published.ShouldContain(i => i.Id == created.Id && i.ImageUrl != null);
+        published.ShouldContain(i => i.Id == ad.Id && i.Kind == WaitingRoomItemKind.Ad);
+        afterHide.ShouldNotContain(i => i.Id == created.Id);
+        afterHide.ShouldContain(i => i.Id == ad.Id);
+    }
+
+    [Fact]
+    public async Task Waiting_room_item_validation()
+    {
+        var client = await Factory.AdminClientAsync(AdminRole.Admin);
+
+        var missingBody = await client.PostJsonAsync("/api/v1/admin/waiting-room-items",
+            new { kind = "article", title = "Empty", displayOrder = 1 });
+        var badLink = await client.PostJsonAsync("/api/v1/admin/waiting-room-items",
+            new { kind = "ad", title = "Ad", linkUrl = "not-a-url", displayOrder = 1 });
+        var missing = await client.PutJsonAsync($"/api/v1/admin/waiting-room-items/{Guid.CreateVersion7()}",
+            new { kind = "ad", title = "Gone", displayOrder = 1 });
+
+        missingBody.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        badLink.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        missing.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
     private async Task<List<SpecialtyDto>> PublicSpecialtiesAsync() =>
         await (await Factory.CreateClient().GetAsync("/api/v1/specialties", TestContext.Current.CancellationToken)).ReadAsync<List<SpecialtyDto>>();
 }

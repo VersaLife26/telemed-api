@@ -1,5 +1,6 @@
 using FluentValidation;
 using TeleMed.Application.Common;
+using TeleMed.Domain.Enums;
 
 namespace TeleMed.Application.Admin.Content;
 
@@ -47,4 +48,25 @@ public sealed class AdminDrugQueryValidator : AbstractValidator<AdminDrugQuery>
         Include(new PageQueryValidator());
         RuleFor(x => x.Q).MaximumLength(100);
     }
+}
+
+public sealed class SaveWaitingRoomItemRequestValidator : AbstractValidator<SaveWaitingRoomItemRequest>
+{
+    public SaveWaitingRoomItemRequestValidator()
+    {
+        RuleFor(x => x.Kind).IsInEnum();
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Body).MaximumLength(20_000);
+        RuleFor(x => x.Body).NotEmpty().When(x => x.Kind == WaitingRoomItemKind.Article)
+            .WithMessage("Articles need a body patients can read.");
+        RuleFor(x => x.LinkUrl).MaximumLength(2_000).Must(BeHttpUrl).When(x => !string.IsNullOrWhiteSpace(x.LinkUrl))
+            .WithMessage("Link must be an http or https URL.");
+        RuleFor(x => x.VideoUrl).MaximumLength(2_000).Must(BeHttpUrl).When(x => !string.IsNullOrWhiteSpace(x.VideoUrl))
+            .WithMessage("Video must be an http or https URL.");
+        RuleFor(x => x.DisplayOrder).InclusiveBetween(0, 10_000);
+    }
+
+    private static bool BeHttpUrl(string? value) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var uri)
+        && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 }

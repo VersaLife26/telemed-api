@@ -11,4 +11,8 @@ public interface IContentRepository
     Task<(IReadOnlyList<Drug> Items, long Total)> ListDrugsAsync(string? search, int skip, int take, CancellationToken ct);
     Task<Drug?> FindDrugAsync(Guid id, CancellationToken ct);
     void AddDrug(Drug drug);
+
+    Task<IReadOnlyList<WaitingRoomItem>> ListWaitingRoomItemsAsync(bool activeOnly, CancellationToken ct);
+    Task<WaitingRoomItem?> FindWaitingRoomItemAsync(Guid id, CancellationToken ct);
+    void AddWaitingRoomItem(WaitingRoomItem item);
 }

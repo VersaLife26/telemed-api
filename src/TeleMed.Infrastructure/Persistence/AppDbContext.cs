@@ -9,6 +9,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 {
     public DbSet<Specialty> Specialties => Set<Specialty>();
     public DbSet<Drug> Drugs => Set<Drug>();
+    public DbSet<WaitingRoomItem> WaitingRoomItems => Set<WaitingRoomItem>();
     public DbSet<Icd10Code> Icd10Codes => Set<Icd10Code>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();

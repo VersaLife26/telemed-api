@@ -37,6 +37,7 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         Guid AdminId,
         string SpecialtyCode,
         Guid DrugId,
+        Guid WaitingRoomItemId,
         Guid ReviewedApplicationId,
         Guid ReviewedDocumentId,
         Guid ApprovableApplicationId,
@@ -85,6 +86,15 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         new("PUT", "admin/drugs/{id:guid}", AdminPermission.Content, t => $"admin/drugs/{t.DrugId}",
             new { name = "Matrixol", genericName = "Matrixamine", strength = "10mg", form = "tablet", isControlled = false, isGeneric = true }),
         new("DELETE", "admin/drugs/{id:guid}", AdminPermission.Content, t => $"admin/drugs/{t.DrugId}"),
+        new("GET", "admin/waiting-room-items", AdminPermission.Content, _ => "admin/waiting-room-items"),
+        new("POST", "admin/waiting-room-items", AdminPermission.Content, _ => "admin/waiting-room-items",
+            new { kind = "article", title = "Matrix wait", body = "Read while you wait.", displayOrder = 1 }),
+        new("GET", "admin/waiting-room-items/{id:guid}", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}"),
+        new("PUT", "admin/waiting-room-items/{id:guid}", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}",
+            new { kind = "article", title = "Matrix wait updated", body = "Updated copy.", displayOrder = 2, isActive = true }),
+        new("DELETE", "admin/waiting-room-items/{id:guid}", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}"),
+        new("PUT", "admin/waiting-room-items/{id:guid}/image", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/image"),
+        new("DELETE", "admin/waiting-room-items/{id:guid}/image", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/image"),
         new("GET", "admin/doctor-applications", AdminPermission.Credentialing, _ => "admin/doctor-applications"),
         new("GET", "admin/doctor-applications/{id:guid}", AdminPermission.Credentialing, t => $"admin/doctor-applications/{t.ReviewedApplicationId}"),
         new("GET", "admin/doctor-applications/{id:guid}/documents/{documentId:guid}", AdminPermission.Credentialing,
@@ -193,7 +203,11 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
             var body = route.Template == "admin/disputes" && route.Method == "POST"
                 ? new { appointmentId = target.AppointmentId, subject = "Matrix", description = "Opened by the matrix" }
                 : route.Body;
-            if (body is not null)
+            if (route.Template.EndsWith("/image", StringComparison.Ordinal) && route.Method == "PUT")
+            {
+                request.Content = DoctorFlows.File(DoctorFlows.Png, "hero.png", "image/png");
+            }
+            else if (body is not null)
             {
                 request.Content = JsonContent.Create(body, options: TeleMed.Api.IntegrationTests.Infrastructure.Api.Json);
             }
@@ -253,6 +267,11 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
                 new { name = "Targetol", genericName = "Targetamine", strength = "1mg", form = "tablet", isControlled = false, isGeneric = true }))
             .ReadAsync<AdminDrugDto>(HttpStatusCode.Created);
         specialty.StatusCode.ShouldBe(HttpStatusCode.Created);
+        var waitingRoomItem = await (await superAdmin.PostJsonAsync("/api/v1/admin/waiting-room-items",
+                new { kind = "article", title = "Target wait", body = "Seeded for the matrix.", displayOrder = 1 }))
+            .ReadAsync<AdminWaitingRoomItemDto>(HttpStatusCode.Created);
+        await superAdmin.PutAsync($"/api/v1/admin/waiting-room-items/{waitingRoomItem.Id}/image",
+            DoctorFlows.File(DoctorFlows.Png, "hero.png", "image/png"));
 
         var reviewed = await Factory.SubmitApplicationAsync(new DoctorFlows.ApplicationSpec { Phone = "+94770000001", Email = "r@example.com", SlmcNumber = "10001" });
         var reviewedDocument = await (await Factory.UploadApplicationDocumentAsync(reviewed.Id, "nic", reviewed.UploadToken, DoctorFlows.Pdf))
@@ -309,7 +328,7 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         var user = await Factory.CreateUserAsync(UserRole.Patient);
 
         return new Target(
-            admin.Id, "matrix_target", drug.Id, reviewed.Id, reviewedDocument.Id, approvable.Id, rejectable.Id, doctorId, doctorDocument.Id, holiday.Id, block.Id,
+            admin.Id, "matrix_target", drug.Id, waitingRoomItem.Id, reviewed.Id, reviewedDocument.Id, approvable.Id, rejectable.Id, doctorId, doctorDocument.Id, holiday.Id, block.Id,
             appointment.Id, accept.Id, decline.Id, adminNotificationId, batchId, paidPayoutId, failedPayoutId, paymentId, approvableRefund, rejectableRefund,
             manualRefund, promo.Id, dispute.Dispute.Id, user.User.Id);
     }

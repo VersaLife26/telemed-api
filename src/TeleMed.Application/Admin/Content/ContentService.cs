@@ -1,11 +1,13 @@
 using TeleMed.Application.Abstractions;
 using TeleMed.Application.Common;
 using TeleMed.Application.Common.Exceptions;
+using TeleMed.Application.Doctors;
 using TeleMed.Domain.Entities;
+using TeleMed.Domain.Rules;
 
 namespace TeleMed.Application.Admin.Content;
 
-public sealed class ContentService(IContentRepository repository, IUnitOfWork unitOfWork)
+public sealed class ContentService(IContentRepository repository, IUnitOfWork unitOfWork, IFileStorage storage)
 {
     public async Task<IReadOnlyList<AdminSpecialtyDto>> ListSpecialtiesAsync(CancellationToken ct) =>
         (await repository.ListSpecialtiesAsync(ct)).Select(s => s.ToAdminDto()).ToList();
@@ -87,6 +89,67 @@ public sealed class ContentService(IContentRepository repository, IUnitOfWork un
         await unitOfWork.SaveChangesAsync(ct);
     }
 
+    public async Task<IReadOnlyList<AdminWaitingRoomItemDto>> ListWaitingRoomItemsAsync(CancellationToken ct) =>
+        (await repository.ListWaitingRoomItemsAsync(activeOnly: false, ct)).Select(i => i.ToAdminDto(storage)).ToList();
+
+    public async Task<IReadOnlyList<WaitingRoomItemDto>> ListPublishedWaitingRoomItemsAsync(CancellationToken ct) =>
+        (await repository.ListWaitingRoomItemsAsync(activeOnly: true, ct)).Select(i => i.ToPublicDto(storage)).ToList();
+
+    public async Task<AdminWaitingRoomItemDto> GetWaitingRoomItemAsync(Guid id, CancellationToken ct) =>
+        (await LoadWaitingRoomItemAsync(id, ct)).ToAdminDto(storage);
+
+    public async Task<AdminWaitingRoomItemDto> CreateWaitingRoomItemAsync(SaveWaitingRoomItemRequest request, CancellationToken ct)
+    {
+        var item = new WaitingRoomItem { Title = request.Title.Trim() };
+        Apply(item, request);
+        repository.AddWaitingRoomItem(item);
+        await unitOfWork.SaveChangesAsync(ct);
+        return item.ToAdminDto(storage);
+    }
+
+    public async Task<AdminWaitingRoomItemDto> UpdateWaitingRoomItemAsync(Guid id, SaveWaitingRoomItemRequest request, CancellationToken ct)
+    {
+        var item = await LoadWaitingRoomItemAsync(id, ct);
+        Apply(item, request);
+        await unitOfWork.SaveChangesAsync(ct);
+        return item.ToAdminDto(storage);
+    }
+
+    public async Task DeactivateWaitingRoomItemAsync(Guid id, CancellationToken ct)
+    {
+        var item = await LoadWaitingRoomItemAsync(id, ct);
+        item.IsActive = false;
+        await unitOfWork.SaveChangesAsync(ct);
+    }
+
+    public async Task<AdminWaitingRoomItemDto> SetWaitingRoomItemImageAsync(Guid id, Stream content, CancellationToken ct)
+    {
+        var upload = await DoctorFiles.ReadAsync(content, PlatformPolicy.ProfilePhotoMaxBytes, FileSignature.Images, ct);
+        var item = await LoadWaitingRoomItemAsync(id, ct);
+        var key = $"waiting-room/{item.Id}/image-{Guid.CreateVersion7()}{FileSignature.Extension(upload.ContentType)}";
+        using var stream = new MemoryStream(upload.Bytes, writable: false);
+        await storage.SaveAsync(key, stream, ct);
+
+        var previous = item.ImageStorageKey;
+        item.ImageStorageKey = key;
+        await unitOfWork.SaveChangesAsync(ct);
+        if (previous is not null)
+        {
+            await storage.DeleteAsync(previous, ct);
+        }
+
+        return item.ToAdminDto(storage);
+    }
+
+    public async Task DeleteWaitingRoomItemImageAsync(Guid id, CancellationToken ct)
+    {
+        var item = await LoadWaitingRoomItemAsync(id, ct);
+        var previous = item.ImageStorageKey ?? throw new NotFoundException("No image.");
+        item.ImageStorageKey = null;
+        await unitOfWork.SaveChangesAsync(ct);
+        await storage.DeleteAsync(previous, ct);
+    }
+
     private static void Apply(Drug drug, SaveDrugRequest request)
     {
         drug.Name = request.Name.Trim();
@@ -100,9 +163,23 @@ public sealed class ContentService(IContentRepository repository, IUnitOfWork un
         drug.IsActive = request.IsActive;
     }
 
+    private static void Apply(WaitingRoomItem item, SaveWaitingRoomItemRequest request)
+    {
+        item.Kind = request.Kind;
+        item.Title = request.Title.Trim();
+        item.Body = string.IsNullOrWhiteSpace(request.Body) ? null : request.Body.Trim();
+        item.LinkUrl = string.IsNullOrWhiteSpace(request.LinkUrl) ? null : request.LinkUrl.Trim();
+        item.VideoUrl = string.IsNullOrWhiteSpace(request.VideoUrl) ? null : request.VideoUrl.Trim();
+        item.DisplayOrder = request.DisplayOrder;
+        item.IsActive = request.IsActive;
+    }
+
     private async Task<Specialty> LoadSpecialtyAsync(string code, CancellationToken ct) =>
         await repository.FindSpecialtyAsync(code, ct) ?? throw new NotFoundException("Specialty not found.");
 
     private async Task<Drug> LoadDrugAsync(Guid id, CancellationToken ct) =>
         await repository.FindDrugAsync(id, ct) ?? throw new NotFoundException("Drug not found.");
+
+    private async Task<WaitingRoomItem> LoadWaitingRoomItemAsync(Guid id, CancellationToken ct) =>
+        await repository.FindWaitingRoomItemAsync(id, ct) ?? throw new NotFoundException("Waiting room item not found.");
 }

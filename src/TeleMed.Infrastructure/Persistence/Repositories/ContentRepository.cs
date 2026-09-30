@@ -31,4 +31,20 @@ internal sealed class ContentRepository(AppDbContext db) : IContentRepository
     public Task<Drug?> FindDrugAsync(Guid id, CancellationToken ct) => db.Drugs.SingleOrDefaultAsync(d => d.Id == id, ct);
 
     public void AddDrug(Drug drug) => db.Drugs.Add(drug);
+
+    public async Task<IReadOnlyList<WaitingRoomItem>> ListWaitingRoomItemsAsync(bool activeOnly, CancellationToken ct)
+    {
+        var query = db.WaitingRoomItems.AsNoTracking();
+        if (activeOnly)
+        {
+            query = query.Where(i => i.IsActive);
+        }
+
+        return await query.OrderBy(i => i.DisplayOrder).ThenBy(i => i.CreatedAt).ToListAsync(ct);
+    }
+
+    public Task<WaitingRoomItem?> FindWaitingRoomItemAsync(Guid id, CancellationToken ct) =>
+        db.WaitingRoomItems.SingleOrDefaultAsync(i => i.Id == id, ct);
+
+    public void AddWaitingRoomItem(WaitingRoomItem item) => db.WaitingRoomItems.Add(item);
 }

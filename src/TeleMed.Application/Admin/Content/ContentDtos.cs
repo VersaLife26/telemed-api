@@ -1,4 +1,5 @@
 using TeleMed.Application.Common;
+using TeleMed.Domain.Enums;
 
 namespace TeleMed.Application.Admin.Content;
 
@@ -35,3 +36,33 @@ public sealed record AdminDrugQuery : PageQuery
 {
     public string? Q { get; init; }
 }
+
+public sealed record WaitingRoomItemDto(
+    Guid Id,
+    WaitingRoomItemKind Kind,
+    string Title,
+    string? Body,
+    string? LinkUrl,
+    string? VideoUrl,
+    string? ImageUrl,
+    int DisplayOrder);
+
+public sealed record AdminWaitingRoomItemDto(
+    Guid Id,
+    WaitingRoomItemKind Kind,
+    string Title,
+    string? Body,
+    string? LinkUrl,
+    string? VideoUrl,
+    string? ImageUrl,
+    int DisplayOrder,
+    bool IsActive);
+
+public sealed record SaveWaitingRoomItemRequest(
+    WaitingRoomItemKind Kind,
+    string Title,
+    string? Body,
+    string? LinkUrl,
+    string? VideoUrl,
+    int DisplayOrder,
+    bool IsActive = true);
