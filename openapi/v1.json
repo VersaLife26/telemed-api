@@ -7405,6 +7405,54 @@
         ]
       }
     },
+    "/api/v1/waiting-room-content": {
+      "get": {
+        "tags": [
+          "WaitingRoomContent"
+        ],
+        "operationId": "WaitingRoomContent_List",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WaitingRoomItemDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "userBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/analytics/dashboard": {
       "get": {
         "tags": [
@@ -14408,6 +14456,543 @@
           }
         ]
       }
+    },
+    "/api/v1/admin/waiting-room-items": {
+      "get": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_List",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminWaitingRoomItemDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_Create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWaitingRoomItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminWaitingRoomItemDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/waiting-room-items/{id}": {
+      "get": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminWaitingRoomItemDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveWaitingRoomItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminWaitingRoomItemDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/waiting-room-items/{id}/image": {
+      "put": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_PutImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminWaitingRoomItemDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_DeleteImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -15082,6 +15667,63 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "AdminWaitingRoomItemDto": {
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "body",
+          "linkUrl",
+          "videoUrl",
+          "imageUrl",
+          "displayOrder",
+          "isActive"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/WaitingRoomItemKind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "linkUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "videoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },
@@ -20431,6 +21073,51 @@
           }
         }
       },
+      "SaveWaitingRoomItemRequest": {
+        "required": [
+          "kind",
+          "title",
+          "body",
+          "linkUrl",
+          "videoUrl",
+          "displayOrder"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/WaitingRoomItemKind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "linkUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "videoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
       "ScheduleDto": {
         "type": "object",
         "properties": {
@@ -21323,6 +22010,66 @@
           }
         }
       },
+      "WaitingRoomItemDto": {
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "body",
+          "linkUrl",
+          "videoUrl",
+          "imageUrl",
+          "displayOrder"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/WaitingRoomItemKind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "linkUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "videoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WaitingRoomItemKind": {
+        "enum": [
+          "article",
+          "ad"
+        ],
+        "type": "string"
+      },
       "WorkingHourDto": {
         "required": [
           "dayOfWeek",
@@ -21432,6 +22179,9 @@
       "name": "Vault"
     },
     {
+      "name": "WaitingRoomContent"
+    },
+    {
       "name": "AdminAnalytics"
     },
     {
@@ -21472,6 +22222,9 @@
     },
     {
       "name": "AdminUsers"
+    },
+    {
+      "name": "AdminWaitingRoomItems"
     }
   ]
 }
