@@ -167,6 +167,7 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         new("GET", "admin/users/{id:guid}/activity", AdminPermission.Users, t => $"admin/users/{t.UserId}/activity"),
         new("POST", "admin/users/{id:guid}/suspend", AdminPermission.Users, t => $"admin/users/{t.UserId}/suspend", new { reason = "Matrix" }),
         new("POST", "admin/users/{id:guid}/reinstate", AdminPermission.Users, t => $"admin/users/{t.UserId}/reinstate"),
+        new("POST", "admin/users/{id:guid}/reset-password", AdminPermission.Users, t => $"admin/users/{t.UserId}/reset-password", new { newPassword = "newPassword123!" }),
         new("GET", "admin/audit", AdminPermission.Audit, _ => "admin/audit"),
         new("GET", "admin/audit.csv", AdminPermission.AuditExport, _ => "admin/audit.csv"),
         new("GET", "admin/analytics/dashboard", AdminPermission.Analytics, _ => "admin/analytics/dashboard"),
