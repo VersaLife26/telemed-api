@@ -79,7 +79,21 @@ public sealed class SaveWaitingRoomItemRequestValidator : AbstractValidator<Save
             trimmed = $"https://{trimmed}";
         }
 
-        return Uri.TryCreate(trimmed, UriKind.Absolute, out var uri)
-            && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+        if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        if (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)
+        {
+            return false;
+        }
+
+        return uri.HostNameType switch
+        {
+            UriHostNameType.IPv4 or UriHostNameType.IPv6 => true,
+            UriHostNameType.Dns => uri.Host.Contains('.', StringComparison.Ordinal),
+            _ => false,
+        };
     }
 }
