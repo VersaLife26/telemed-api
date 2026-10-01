@@ -43,10 +43,10 @@ public sealed class ContentService(IContentRepository repository, IUnitOfWork un
         return specialty.ToAdminDto();
     }
 
-    public async Task DeactivateSpecialtyAsync(string code, CancellationToken ct)
+    public async Task DeleteSpecialtyAsync(string code, CancellationToken ct)
     {
         var specialty = await LoadSpecialtyAsync(code, ct);
-        specialty.IsActive = false;
+        repository.RemoveSpecialty(specialty);
         await unitOfWork.SaveChangesAsync(ct);
     }
 
@@ -82,10 +82,10 @@ public sealed class ContentService(IContentRepository repository, IUnitOfWork un
         return drug.ToAdminDto();
     }
 
-    public async Task DeactivateDrugAsync(Guid id, CancellationToken ct)
+    public async Task DeleteDrugAsync(Guid id, CancellationToken ct)
     {
         var drug = await LoadDrugAsync(id, ct);
-        drug.IsActive = false;
+        repository.RemoveDrug(drug);
         await unitOfWork.SaveChangesAsync(ct);
     }
 
@@ -115,11 +115,22 @@ public sealed class ContentService(IContentRepository repository, IUnitOfWork un
         return item.ToAdminDto(storage);
     }
 
-    public async Task DeactivateWaitingRoomItemAsync(Guid id, CancellationToken ct)
+    public async Task DeleteWaitingRoomItemAsync(Guid id, CancellationToken ct)
     {
         var item = await LoadWaitingRoomItemAsync(id, ct);
-        item.IsActive = false;
+        var imageKey = item.ImageStorageKey;
+        var videoKey = item.VideoStorageKey;
+        repository.RemoveWaitingRoomItem(item);
         await unitOfWork.SaveChangesAsync(ct);
+        if (imageKey is not null)
+        {
+            await storage.DeleteAsync(imageKey, ct);
+        }
+
+        if (videoKey is not null)
+        {
+            await storage.DeleteAsync(videoKey, ct);
+        }
     }
 
     public async Task<AdminWaitingRoomItemDto> SetWaitingRoomItemImageAsync(Guid id, Stream content, CancellationToken ct)

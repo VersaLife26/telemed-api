@@ -31,7 +31,7 @@ public sealed class AdminDrugsController(ContentService content) : ControllerBas
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<NoContentResult> Delete(Guid id, CancellationToken ct)
     {
-        await content.DeactivateDrugAsync(id, ct);
+        await content.DeleteDrugAsync(id, ct);
         return NoContent();
     }
 }

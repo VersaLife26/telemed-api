@@ -50,6 +50,7 @@ internal static class PostgresErrorMapper
         {
             PostgresErrorCodes.UniqueViolation => ("duplicate", "A record with the same value already exists."),
             PostgresErrorCodes.ExclusionViolation => ("overlap", "This overlaps an existing record."),
+            PostgresErrorCodes.ForeignKeyViolation => ("in_use", "This entry is referenced elsewhere and cannot be deleted."),
             _ => ((string, string)?)null,
         };
         if (generic is null)

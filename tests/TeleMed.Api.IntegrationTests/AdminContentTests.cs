@@ -29,7 +29,7 @@ public class AdminContentTests(ApiFixture fixture) : IntegrationTest(fixture)
         created.IsActive.ShouldBeTrue();
         visible.ShouldContain(s => s.Code == "sports_medicine");
         hidden.ShouldNotContain(s => s.Code == "sports_medicine");
-        adminList.ShouldContain(s => s.Code == "sports_medicine" && !s.IsActive);
+        adminList.ShouldNotContain(s => s.Code == "sports_medicine");
     }
 
     [Fact]
@@ -87,8 +87,8 @@ public class AdminContentTests(ApiFixture fixture) : IntegrationTest(fixture)
         updated.Strength.ShouldBe("40mg");
         searchable.ShouldHaveSingleItem().Id.ShouldBe(created.Id);
         afterDelete.ShouldBeEmpty();
-        adminSearch.Total.ShouldBe(1);
-        adminSearch.Items.ShouldHaveSingleItem().IsActive.ShouldBeFalse();
+        adminSearch.Total.ShouldBe(0);
+        adminSearch.Items.ShouldBeEmpty();
     }
 
     [Fact]
@@ -150,6 +150,8 @@ public class AdminContentTests(ApiFixture fixture) : IntegrationTest(fixture)
             .StatusCode.ShouldBe(HttpStatusCode.NoContent);
         var afterHide = await (await patient.GetAsync("/api/v1/waiting-room-content", TestContext.Current.CancellationToken))
             .ReadAsync<List<WaitingRoomItemDto>>();
+        var adminItems = await (await admin.GetAsync("/api/v1/admin/waiting-room-items", TestContext.Current.CancellationToken))
+            .ReadAsync<List<AdminWaitingRoomItemDto>>();
         (await admin.DeleteAsync($"/api/v1/admin/waiting-room-items/{ad.Id}/image", TestContext.Current.CancellationToken))
             .StatusCode.ShouldBe(HttpStatusCode.NotFound);
         var video = await Factory.CreateClient().GetAsync(withVideo.VideoFileUrl!, TestContext.Current.CancellationToken);
@@ -164,6 +166,8 @@ public class AdminContentTests(ApiFixture fixture) : IntegrationTest(fixture)
         published.ShouldContain(i => i.Id == ad.Id && i.Kind == WaitingRoomItemKind.Ad && i.VideoFileUrl != null);
         afterHide.ShouldNotContain(i => i.Id == created.Id);
         afterHide.ShouldContain(i => i.Id == ad.Id);
+        adminItems.ShouldNotContain(i => i.Id == created.Id);
+        adminItems.ShouldContain(i => i.Id == ad.Id);
     }
 
     [Fact]

@@ -32,7 +32,7 @@ public sealed class AdminWaitingRoomItemsController(ContentService content) : Co
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<NoContentResult> Delete(Guid id, CancellationToken ct)
     {
-        await content.DeactivateWaitingRoomItemAsync(id, ct);
+        await content.DeleteWaitingRoomItemAsync(id, ct);
         return NoContent();
     }
 

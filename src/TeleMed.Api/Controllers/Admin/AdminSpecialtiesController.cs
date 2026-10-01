@@ -31,7 +31,7 @@ public sealed class AdminSpecialtiesController(ContentService content) : Control
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<NoContentResult> Delete(string code, CancellationToken ct)
     {
-        await content.DeactivateSpecialtyAsync(code, ct);
+        await content.DeleteSpecialtyAsync(code, ct);
         return NoContent();
     }
 }

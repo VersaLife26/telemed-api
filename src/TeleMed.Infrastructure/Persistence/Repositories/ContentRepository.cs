@@ -14,6 +14,8 @@ internal sealed class ContentRepository(AppDbContext db) : IContentRepository
 
     public void AddSpecialty(Specialty specialty) => db.Specialties.Add(specialty);
 
+    public void RemoveSpecialty(Specialty specialty) => db.Specialties.Remove(specialty);
+
     public async Task<(IReadOnlyList<Drug> Items, long Total)> ListDrugsAsync(string? search, int skip, int take, CancellationToken ct)
     {
         var query = db.Drugs.AsNoTracking();
@@ -32,6 +34,8 @@ internal sealed class ContentRepository(AppDbContext db) : IContentRepository
 
     public void AddDrug(Drug drug) => db.Drugs.Add(drug);
 
+    public void RemoveDrug(Drug drug) => db.Drugs.Remove(drug);
+
     public async Task<IReadOnlyList<WaitingRoomItem>> ListWaitingRoomItemsAsync(bool activeOnly, CancellationToken ct)
     {
         var query = db.WaitingRoomItems.AsNoTracking();
@@ -47,4 +51,6 @@ internal sealed class ContentRepository(AppDbContext db) : IContentRepository
         db.WaitingRoomItems.SingleOrDefaultAsync(i => i.Id == id, ct);
 
     public void AddWaitingRoomItem(WaitingRoomItem item) => db.WaitingRoomItems.Add(item);
+
+    public void RemoveWaitingRoomItem(WaitingRoomItem item) => db.WaitingRoomItems.Remove(item);
 }
