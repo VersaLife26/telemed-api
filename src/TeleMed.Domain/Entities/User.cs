@@ -4,7 +4,7 @@ using TeleMed.Domain.Enums;
 
 namespace TeleMed.Domain.Entities;
 
-public class User : IdentityUser<Guid>, ITimestamped
+public class User : IdentityUser<Guid>, ITimestamped, IAuditable
 {
     public User()
     {

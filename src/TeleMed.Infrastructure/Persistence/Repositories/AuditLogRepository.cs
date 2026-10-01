@@ -6,6 +6,8 @@ namespace TeleMed.Infrastructure.Persistence.Repositories;
 
 internal sealed class AuditLogRepository(AppDbContext db) : IAuditLogRepository
 {
+    public void Add(AuditLog log) => db.AuditLogs.Add(log);
+
     public async Task<IReadOnlyList<AuditLog>> ListForAppointmentAsync(Guid appointmentId, CancellationToken ct)
     {
         var paymentIds = await db.Payments.Where(p => p.AppointmentId == appointmentId).Select(p => p.Id).ToListAsync(ct);

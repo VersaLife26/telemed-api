@@ -4,6 +4,7 @@ using TeleMed.Application.Admin.Doctors;
 using TeleMed.Application.Admin.Users;
 using TeleMed.Application.Auth;
 using TeleMed.Application.Common;
+using TeleMed.Application.Users;
 using TeleMed.Domain.Enums;
 using static TeleMed.Api.IntegrationTests.Infrastructure.FinanceFlows;
 
@@ -68,11 +69,34 @@ public class AdminPlatformUserTests(ApiFixture fixture) : IntegrationTest(fixtur
         activity.Appointments.Total.ShouldBe(1);
         activity.Appointments.PendingPayment.ShouldBe(1);
         activity.Audit.ShouldContain(a => a.EntityType == "appointments" && a.Action == "created");
+        activity.Audit.ShouldContain(a => a.EntityType == "payments" && a.Action == "created");
         activity.Audit.ShouldAllBe(a => a.ActorId == patient.UserId);
 
         var doctorActivity = await (await admin.GetAsync($"/api/v1/admin/users/{doctor.UserId}/activity", Ct)).ReadAsync<UserActivityDto>();
         doctorActivity.Appointments.Total.ShouldBe(1);
         (await admin.GetAsync($"/api/v1/admin/users/{Guid.NewGuid()}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task User_activity_records_login_logout_and_profile_updates()
+    {
+        var auth = await Factory.SignInWithPhoneAsync("+94770004444");
+        var client = Factory.CreateClient().WithBearer(auth.AccessToken);
+        var me = await (await client.GetAsync("/api/v1/me", Ct)).ReadAsync<MeDto>();
+        (await client.PutJsonAsync("/api/v1/me", new
+        {
+            fullName = "Lasana Pahanga",
+            language = "en",
+            version = me.Version,
+        })).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await Factory.CreateClient().PostJsonAsync("/api/v1/auth/logout", new { refreshToken = auth.RefreshToken }))
+            .StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var admin = await Factory.AdminClientAsync(AdminRole.Ops);
+        var activity = await (await admin.GetAsync($"/api/v1/admin/users/{auth.User.Id}/activity", Ct)).ReadAsync<UserActivityDto>();
+        activity.Audit.ShouldContain(a => a.EntityType == "sessions" && a.Action == "logged_in");
+        activity.Audit.ShouldContain(a => a.EntityType == "sessions" && a.Action == "logged_out");
+        activity.Audit.ShouldContain(a => a.EntityType == "users" && a.Action == "updated");
     }
 
     [Fact]

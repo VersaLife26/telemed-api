@@ -39,6 +39,7 @@ public static class DependencyInjection
 
         services.AddScoped<ReferenceDataService>();
         services.AddScoped<SessionIssuer>();
+        services.AddScoped<SessionActivity>();
         services.AddScoped<AuthService>();
         services.AddScoped<MeService>();
         services.AddScoped<CapturedMessagesService>();

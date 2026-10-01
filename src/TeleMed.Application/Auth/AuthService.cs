@@ -17,6 +17,7 @@ public sealed class AuthService(
     IEmailSender email,
     IGoogleTokenValidator google,
     SessionIssuer sessions,
+    SessionActivity sessionActivity,
     ICurrentActor actor,
     IUnitOfWork unitOfWork,
     TimeProvider time)
@@ -124,6 +125,7 @@ public sealed class AuthService(
         }
 
         var session = sessions.Issue(user);
+        sessionActivity.LoggedIn(user);
         await unitOfWork.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         return session.Response;
@@ -146,6 +148,7 @@ public sealed class AuthService(
         };
         await accounts.CreateAsync(user, request.Password);
         var session = sessions.Issue(user);
+        sessionActivity.LoggedIn(user);
         await unitOfWork.SaveChangesAsync(ct);
         return session.Response;
     }
@@ -169,6 +172,7 @@ public sealed class AuthService(
 
         EnsureActive(user!);
         var session = sessions.Issue(user!);
+        sessionActivity.LoggedIn(user!);
         await unitOfWork.SaveChangesAsync(ct);
         return session.Response;
     }
@@ -218,6 +222,7 @@ public sealed class AuthService(
 
         EnsureActive(user);
         var session = sessions.Issue(user);
+        sessionActivity.LoggedIn(user);
         await unitOfWork.SaveChangesAsync(ct);
         return session.Response;
     }
@@ -271,6 +276,7 @@ public sealed class AuthService(
         }
 
         token.RevokedAt = time.GetUtcNow();
+        sessionActivity.LoggedOut(token.UserId);
         await unitOfWork.SaveChangesAsync(ct);
     }
 
@@ -278,6 +284,7 @@ public sealed class AuthService(
     {
         var user = await accounts.FindByIdAsync(actor.RequireUserId(), ct) ?? throw new NotFoundException("User not found.");
         await sessions.RevokeAllAsync(user, ct);
+        sessionActivity.LoggedOut(user.Id, user.Email);
         await unitOfWork.SaveChangesAsync(ct);
     }
 

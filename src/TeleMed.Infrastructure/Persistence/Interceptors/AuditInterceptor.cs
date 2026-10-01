@@ -23,6 +23,15 @@ internal sealed class AuditInterceptor(ICurrentActor actor, IRequestContext requ
         "PasswordHash",
         "SecurityStamp",
         "ConcurrencyStamp",
+        "AccessFailedCount",
+        "LockoutEnd",
+        "LockoutEnabled",
+        "PhoneNumberConfirmed",
+        "EmailConfirmed",
+        "TwoFactorEnabled",
+        "NormalizedEmail",
+        "NormalizedUserName",
+        "UserName",
     ];
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)

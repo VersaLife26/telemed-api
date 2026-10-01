@@ -4,6 +4,8 @@ namespace TeleMed.Application.Admin.Audit;
 
 public interface IAuditLogRepository
 {
+    void Add(AuditLog log);
+
     // The appointment's own rows plus those of its payment, refunds and reschedule requests, oldest first.
     Task<IReadOnlyList<AuditLog>> ListForAppointmentAsync(Guid appointmentId, CancellationToken ct);
     Task<IReadOnlyList<AuditLog>> ListByActorAsync(Guid actorId, int limit, CancellationToken ct);
