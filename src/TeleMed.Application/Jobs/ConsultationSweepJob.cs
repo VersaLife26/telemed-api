@@ -62,7 +62,8 @@ public sealed class ConsultationSweepJob(
             string reason;
             if (doctorJoined)
             {
-                lifecycle.MarkNoShow(appointment);
+                var payment = await lifecycle.LockPaymentAsync(appointment.Id, ct);
+                await lifecycle.MarkPatientNoShowAsync(appointment, payment, ct);
                 reason = PlatformPolicy.PatientNoShowReason;
             }
             else

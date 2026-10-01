@@ -47,12 +47,64 @@ public sealed class PaymentLifecycle(
         appointment.CompletedAt = time.GetUtcNow();
     }
 
-    public void MarkNoShow(Appointment appointment)
+    public async Task MarkPatientNoShowAsync(Appointment appointment, Payment? payment, CancellationToken ct)
     {
         EnsureTransition(appointment, AppointmentStatus.NoShow);
         appointment.Status = AppointmentStatus.NoShow;
         appointment.NoShowAt = time.GetUtcNow();
-        appointment.RefundPercent = CancellationPolicy.NoShowRefundPercent;
+        if (payment is null)
+        {
+            appointment.RefundPercent = null;
+            return;
+        }
+
+        appointment.RefundPercent = CancellationPolicy.PatientNoShowRefundPercent(payment.AmountCents);
+        if (payment.Status is PaymentStatus.Succeeded or PaymentStatus.PartiallyRefunded)
+        {
+            await StagePatientNoShowRefundAsync(payment, appointment.RefundPercent.Value, ct);
+        }
+    }
+
+    // Called after an authorized hold is captured for a no-show appointment.
+    public Task StagePatientNoShowRefundIfNeededAsync(Payment payment, Appointment appointment, CancellationToken ct) =>
+        appointment.Status == AppointmentStatus.NoShow
+            ? StagePatientNoShowRefundAsync(
+                payment,
+                appointment.RefundPercent ?? CancellationPolicy.PatientNoShowRefundPercent(payment.AmountCents),
+                ct)
+            : Task.CompletedTask;
+
+    private async Task StagePatientNoShowRefundAsync(Payment payment, int refundPercent, CancellationToken ct)
+    {
+        var captured = payment.CapturedCents ?? 0;
+        if (captured <= 0)
+        {
+            return;
+        }
+
+        var payoutRemaining = payment.PayoutCents - payment.RefundedPayoutCents;
+        if (payoutRemaining <= 0)
+        {
+            return;
+        }
+
+        var reserved = payment.RefundedCents + await payments.SumOpenRefundsAsync(payment.Id, ct);
+        var amount = Math.Min(payoutRemaining, captured - reserved);
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        payments.AddRefund(new Refund
+        {
+            PaymentId = payment.Id,
+            AmountCents = amount,
+            CommissionCents = 0,
+            ProviderFeeCents = 0,
+            PayoutCents = amount,
+            Percent = refundPercent,
+            Reason = RefundReason.PatientNoShow,
+        });
     }
 
     private static void EnsureTransition(Appointment appointment, AppointmentStatus to)

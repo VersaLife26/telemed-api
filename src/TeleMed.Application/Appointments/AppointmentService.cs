@@ -161,7 +161,8 @@ public sealed class AppointmentService(
         }
         else
         {
-            lifecycle.MarkNoShow(appointment);
+            var payment = await lifecycle.LockPaymentAsync(id, ct);
+            await lifecycle.MarkPatientNoShowAsync(appointment, payment, ct);
         }
 
         await unitOfWork.SaveChangesAsync(ct);

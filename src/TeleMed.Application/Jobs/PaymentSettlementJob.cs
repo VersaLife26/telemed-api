@@ -1,5 +1,6 @@
 using TeleMed.Application.Abstractions;
 using TeleMed.Application.Admin.Notifications;
+using TeleMed.Application.Appointments;
 using TeleMed.Application.Notifications.Templates;
 using TeleMed.Application.Payments;
 using TeleMed.Domain.Enums;
@@ -11,6 +12,7 @@ namespace TeleMed.Application.Jobs;
 // re-checking the state in case something else settled the payment in the meantime.
 public sealed class PaymentSettlementJob(
     IPaymentRepository payments,
+    IAppointmentRepository appointments,
     IEnumerable<IPaymentProvider> providers,
     IUnitOfWork unitOfWork,
     PaymentLifecycle lifecycle,
@@ -83,6 +85,10 @@ public sealed class PaymentSettlementJob(
                 payment.ProviderPaymentId = result.Reference ?? payment.ProviderPaymentId;
                 payment.FailureReason = null;
                 payment.ApplySplit(CommissionCalculator.Split(capture));
+                if (await appointments.FindForUpdateAsync(payment.AppointmentId, ct) is { Status: AppointmentStatus.NoShow } appointment)
+                {
+                    await lifecycle.StagePatientNoShowRefundIfNeededAsync(payment, appointment, ct);
+                }
             }
 
             await unitOfWork.SaveChangesAsync(ct);

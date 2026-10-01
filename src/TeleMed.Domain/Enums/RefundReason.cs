@@ -9,6 +9,7 @@ public enum RefundReason
     LatePayment,
     RescheduleDeclined,
     DoctorNoShow,
+    PatientNoShow,
     AdminRequest,
     Dispute,
 }

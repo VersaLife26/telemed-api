@@ -62,7 +62,7 @@ internal sealed class PayoutRepository(AppDbContext db) : IPayoutRepository
                 WHERE p.payout_id IS NULL
                   AND p.status IN ('succeeded', 'partially_refunded')
                   AND NOT a.is_test
-                  AND a.status IN ('completed', 'no_show')
+                  AND a.status = 'completed'
                   AND GREATEST(p.succeeded_at, COALESCE(a.completed_at, a.no_show_at)) < {settledBefore}
                   AND NOT EXISTS (
                       SELECT 1 FROM refunds r

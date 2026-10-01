@@ -197,7 +197,7 @@ public class BookingTests(ApiFixture fixture) : IntegrationTest(fixture)
 
         completed.Status.ShouldBe(AppointmentStatus.Completed);
         noShow.Status.ShouldBe(AppointmentStatus.NoShow);
-        noShow.RefundPercent.ShouldBe(0);
+        noShow.RefundPercent.ShouldBe(77);
         unpaid.StatusCode.ShouldBe(HttpStatusCode.Conflict);
         (await unpaid.ProblemCodeAsync()).ShouldBe("invalid_transition");
         (await (await doctorClient.PostAsync($"/api/v1/appointments/{a.Id}/cancel", null, Ct)).ProblemCodeAsync()).ShouldBe("invalid_transition");
@@ -205,6 +205,12 @@ public class BookingTests(ApiFixture fixture) : IntegrationTest(fixture)
         await Factory.SettleAsync();
 
         (await Fixture.ScalarAsync<long>($"SELECT count(*) FROM payments WHERE status = 'succeeded' AND captured_cents = 250000 AND doctor_id = '{doctor.DoctorId}'"))
-            .ShouldBe(2);
+            .ShouldBe(1);
+        (await Fixture.ScalarAsync<string>(
+                $"SELECT status FROM payments WHERE appointment_id = '{b.Id}'"))
+            .ShouldBe("partially_refunded");
+        (await Fixture.ScalarAsync<long>(
+                $"SELECT count(*) FROM refunds WHERE payment_id = (SELECT id FROM payments WHERE appointment_id = '{b.Id}') AND reason = 'patient_no_show'"))
+            .ShouldBe(1);
     }
 }

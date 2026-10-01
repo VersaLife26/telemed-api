@@ -18,7 +18,7 @@ public interface IPayoutRepository
     Task<IReadOnlyList<Payout>> ListBatchPayoutsForUpdateAsync(Guid batchId, CancellationToken ct);
     Task<(IReadOnlyList<Payout> Items, long Total)> ListForDoctorAsync(Guid doctorId, int skip, int take, CancellationToken ct);
 
-    // Captured, non-test payments not yet in a payout whose appointment is completed or no_show, whose capture and
+    // Captured, non-test payments not yet in a payout whose appointment is completed, whose capture and
     // appointment outcome both happened before the cutoff, and that have no refund still in flight; row-locked and tracked.
     Task<IReadOnlyList<Payment>> ListPayableForUpdateAsync(DateTimeOffset settledBefore, CancellationToken ct);
     Task<IReadOnlyList<Payment>> ListPaymentsForUpdateAsync(Guid payoutId, CancellationToken ct);

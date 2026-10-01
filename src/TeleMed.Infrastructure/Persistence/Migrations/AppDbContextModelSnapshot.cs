@@ -3042,7 +3042,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
 
                     b.ToTable("refunds", null, t =>
                         {
-                            t.HasCheckConstraint("CK_refunds_reason_Enum", "reason IN ('patient_cancellation', 'doctor_cancellation', 'admin_cancellation', 'system_cancellation', 'late_payment', 'reschedule_declined', 'doctor_no_show', 'admin_request', 'dispute')");
+                            t.HasCheckConstraint("CK_refunds_reason_Enum", "reason IN ('patient_cancellation', 'doctor_cancellation', 'admin_cancellation', 'system_cancellation', 'late_payment', 'reschedule_declined', 'doctor_no_show', 'patient_no_show', 'admin_request', 'dispute')");
 
                             t.HasCheckConstraint("CK_refunds_status_Enum", "status IN ('requested', 'approved', 'processing', 'succeeded', 'failed', 'manual_required', 'rejected')");
 

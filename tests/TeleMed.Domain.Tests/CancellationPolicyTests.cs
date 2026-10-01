@@ -28,8 +28,8 @@ public class CancellationPolicyTests
     }
 
     [Fact]
-    public void No_show_refunds_nothing()
+    public void Patient_no_show_refunds_the_doctor_share()
     {
-        CancellationPolicy.NoShowRefundPercent.ShouldBe(0);
+        CancellationPolicy.PatientNoShowRefundPercent(250_000).ShouldBe(77);
     }
 }

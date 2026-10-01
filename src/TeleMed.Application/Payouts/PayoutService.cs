@@ -9,7 +9,7 @@ using TeleMed.Domain.Rules;
 
 namespace TeleMed.Application.Payouts;
 
-// A run for local day D pays every captured payment not yet in a payout whose appointment ended as completed or no_show,
+// A run for local day D pays every captured payment not yet in a payout whose appointment ended as completed,
 // once both the capture and that outcome are on or before D and older than PayoutHold, less the doctor's unapplied clawbacks.
 // Anything the hold kept back (or a failed payout released) lands in a later day's batch.
 // One batch per day and one payout per doctor per day make a re-run a no-op.

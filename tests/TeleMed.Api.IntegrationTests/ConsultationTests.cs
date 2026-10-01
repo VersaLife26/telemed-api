@@ -8,6 +8,7 @@ using TeleMed.Domain.Enums;
 using TeleMed.Domain.Rules;
 using static TeleMed.Api.IntegrationTests.Infrastructure.BookingFlows;
 using static TeleMed.Api.IntegrationTests.Infrastructure.ConsultationFlows;
+using static TeleMed.Api.IntegrationTests.Infrastructure.FinanceFlows;
 
 namespace TeleMed.Api.IntegrationTests;
 
@@ -229,13 +230,17 @@ public class ConsultationTests(ApiFixture fixture) : IntegrationTest(fixture)
         Factory.Time.Advance(TimeSpan.FromSeconds(1));
         await Factory.RunJobAsync<ConsultationSweepJob>();
 
-        (await AppointmentStateAsync(booked.Id)).ShouldBe("no_show:0");
+        (await AppointmentStateAsync(booked.Id)).ShouldBe("no_show:77");
         (await Fixture.ScalarAsync<string>($"SELECT concat_ws(':', status, end_reason) FROM consultations WHERE appointment_id = '{booked.Id}'"))
             .ShouldBe("abandoned:patient_no_show");
         (await Fixture.ScalarAsync<long>("SELECT count(*) FROM admin_notifications WHERE kind = 'doctor_no_show'")).ShouldBe(0);
 
         await Factory.SettleAsync();
-        (await PaymentStatusAsync(booked.Id)).ShouldBe("succeeded");
+        (await PaymentStatusAsync(booked.Id)).ShouldBe("partially_refunded");
+        (await Fixture.ScalarAsync<string>(
+                $"SELECT concat_ws(':', reason, amount_cents, payout_cents) FROM refunds WHERE payment_id = (SELECT id FROM payments WHERE appointment_id = '{booked.Id}')"))
+            .ShouldBe($"patient_no_show:{FinanceFlows.DoctorShare}:{FinanceFlows.DoctorShare}");
+        (await Fixture.ScalarAsync<Guid?>($"SELECT payout_id FROM payments WHERE appointment_id = '{booked.Id}'")).ShouldBeNull();
     }
 
     [Fact]
