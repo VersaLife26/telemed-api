@@ -20961,21 +20961,6 @@
           }
         }
       },
-      "ResetPasswordRequest": {
-        "required": [
-          "token",
-          "newPassword"
-        ],
-        "type": "object",
-        "properties": {
-          "token": {
-            "type": "string"
-          },
-          "newPassword": {
-            "type": "string"
-          }
-        }
-      },
       "RefundDto": {
         "required": [
           "id",
@@ -21028,6 +21013,7 @@
           "latePayment",
           "rescheduleDeclined",
           "doctorNoShow",
+          "patientNoShow",
           "adminRequest",
           "dispute"
         ],
@@ -21202,6 +21188,21 @@
           "expired"
         ],
         "type": "string"
+      },
+      "ResetPasswordRequest": {
+        "required": [
+          "token",
+          "newPassword"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        }
       },
       "ResetUserPasswordRequest": {
         "required": [
