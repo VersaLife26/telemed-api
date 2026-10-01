@@ -66,7 +66,20 @@ public sealed class SaveWaitingRoomItemRequestValidator : AbstractValidator<Save
         RuleFor(x => x.DisplayOrder).InclusiveBetween(0, 10_000);
     }
 
-    private static bool BeHttpUrl(string? value) =>
-        Uri.TryCreate(value, UriKind.Absolute, out var uri)
-        && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+    private static bool BeHttpUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return true;
+        }
+
+        var trimmed = value.Trim();
+        if (!trimmed.Contains("://", StringComparison.Ordinal))
+        {
+            trimmed = $"https://{trimmed}";
+        }
+
+        return Uri.TryCreate(trimmed, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+    }
 }

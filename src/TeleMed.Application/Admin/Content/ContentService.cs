@@ -168,10 +168,26 @@ public sealed class ContentService(IContentRepository repository, IUnitOfWork un
         item.Kind = request.Kind;
         item.Title = request.Title.Trim();
         item.Body = string.IsNullOrWhiteSpace(request.Body) ? null : request.Body.Trim();
-        item.LinkUrl = string.IsNullOrWhiteSpace(request.LinkUrl) ? null : request.LinkUrl.Trim();
-        item.VideoUrl = string.IsNullOrWhiteSpace(request.VideoUrl) ? null : request.VideoUrl.Trim();
+        item.LinkUrl = NormalizeHttpUrl(request.LinkUrl);
+        item.VideoUrl = NormalizeHttpUrl(request.VideoUrl);
         item.DisplayOrder = request.DisplayOrder;
         item.IsActive = request.IsActive;
+    }
+
+    private static string? NormalizeHttpUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var trimmed = value.Trim();
+        if (!trimmed.Contains("://", StringComparison.Ordinal))
+        {
+            trimmed = $"https://{trimmed}";
+        }
+
+        return trimmed;
     }
 
     private async Task<Specialty> LoadSpecialtyAsync(string code, CancellationToken ct) =>
