@@ -6,8 +6,8 @@ public class EmailHtmlLayoutTests
 {
     private static readonly EmailBrand Brand = new(
         "VersaLife Health",
-        "https://app.example/assets/logo.svg",
-        "https://app.example/assets/logo-small.svg",
+        "https://app.example/assets/logo-email.png",
+        "https://app.example/assets/logo-mark-email.png",
         "https://app.example");
 
     [Fact]
@@ -15,8 +15,8 @@ public class EmailHtmlLayoutTests
     {
         var html = EmailHtmlLayout.Render(Brand, "Test & subject", "Hello <world>\n\nFee: Rs. 100");
 
-        html.ShouldContain("https://app.example/assets/logo.svg");
-        html.ShouldContain("https://app.example/assets/logo-small.svg");
+        html.ShouldContain("https://app.example/assets/logo-email.png");
+        html.ShouldContain("https://app.example/assets/logo-mark-email.png");
         html.ShouldContain("linear-gradient(90deg,#015591 0%,#50C898 100%)");
         html.ShouldContain("Test &amp; subject");
         html.ShouldContain("Hello &lt;world&gt;");

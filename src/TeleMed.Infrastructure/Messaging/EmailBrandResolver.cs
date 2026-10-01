@@ -11,10 +11,10 @@ internal static class EmailBrandResolver
         var appUrl = links.Value.PatientAppUrl.TrimEnd('/');
         // Official VersaLife assets from the patient app (same files as the product UI).
         var headerLogo = string.IsNullOrWhiteSpace(email.Value.LogoUrl)
-            ? $"{appUrl}/assets/logo.svg"
+            ? $"{appUrl}/assets/logo-email.png"
             : email.Value.LogoUrl.Trim();
         var markLogo = string.IsNullOrWhiteSpace(email.Value.MarkLogoUrl)
-            ? $"{appUrl}/assets/logo-small.svg"
+            ? $"{appUrl}/assets/logo-mark-email.png"
             : email.Value.MarkLogoUrl.Trim();
         return new EmailBrand(email.Value.FromName, headerLogo, markLogo, appUrl);
     }
