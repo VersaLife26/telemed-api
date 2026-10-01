@@ -52,4 +52,22 @@ public sealed class AdminWaitingRoomItemsController(ContentService content) : Co
         await content.DeleteWaitingRoomItemImageAsync(id, ct);
         return NoContent();
     }
+
+    [HttpPut("{id:guid}/video")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(PlatformPolicy.WaitingRoomVideoMaxBytes + (64 * 1024))]
+    [RequestFormLimits(MultipartBodyLengthLimit = PlatformPolicy.WaitingRoomVideoMaxBytes + (64 * 1024))]
+    public async Task<AdminWaitingRoomItemDto> PutVideo(Guid id, IFormFile file, CancellationToken ct)
+    {
+        await using var stream = file.OpenReadStream();
+        return await content.SetWaitingRoomItemVideoAsync(id, stream, ct);
+    }
+
+    [HttpDelete("{id:guid}/video")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<NoContentResult> DeleteVideo(Guid id, CancellationToken ct)
+    {
+        await content.DeleteWaitingRoomItemVideoAsync(id, ct);
+        return NoContent();
+    }
 }

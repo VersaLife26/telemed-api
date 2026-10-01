@@ -95,6 +95,8 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         new("DELETE", "admin/waiting-room-items/{id:guid}", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}"),
         new("PUT", "admin/waiting-room-items/{id:guid}/image", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/image"),
         new("DELETE", "admin/waiting-room-items/{id:guid}/image", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/image"),
+        new("PUT", "admin/waiting-room-items/{id:guid}/video", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/video"),
+        new("DELETE", "admin/waiting-room-items/{id:guid}/video", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/video"),
         new("GET", "admin/doctor-applications", AdminPermission.Credentialing, _ => "admin/doctor-applications"),
         new("GET", "admin/doctor-applications/{id:guid}", AdminPermission.Credentialing, t => $"admin/doctor-applications/{t.ReviewedApplicationId}"),
         new("GET", "admin/doctor-applications/{id:guid}/documents/{documentId:guid}", AdminPermission.Credentialing,
@@ -207,6 +209,10 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
             {
                 request.Content = DoctorFlows.File(DoctorFlows.Png, "hero.png", "image/png");
             }
+            else if (route.Template.EndsWith("/video", StringComparison.Ordinal) && route.Method == "PUT")
+            {
+                request.Content = DoctorFlows.File(DoctorFlows.Mp4, "ad.mp4", "video/mp4");
+            }
             else if (body is not null)
             {
                 request.Content = JsonContent.Create(body, options: TeleMed.Api.IntegrationTests.Infrastructure.Api.Json);
@@ -272,6 +278,8 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
             .ReadAsync<AdminWaitingRoomItemDto>(HttpStatusCode.Created);
         await superAdmin.PutAsync($"/api/v1/admin/waiting-room-items/{waitingRoomItem.Id}/image",
             DoctorFlows.File(DoctorFlows.Png, "hero.png", "image/png"));
+        await superAdmin.PutAsync($"/api/v1/admin/waiting-room-items/{waitingRoomItem.Id}/video",
+            DoctorFlows.File(DoctorFlows.Mp4, "ad.mp4", "video/mp4"));
 
         var reviewed = await Factory.SubmitApplicationAsync(new DoctorFlows.ApplicationSpec { Phone = "+94770000001", Email = "r@example.com", SlmcNumber = "10001" });
         var reviewedDocument = await (await Factory.UploadApplicationDocumentAsync(reviewed.Id, "nic", reviewed.UploadToken, DoctorFlows.Pdf))

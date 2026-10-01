@@ -11,6 +11,7 @@ public class WaitingRoomItem : Entity, IAuditable
     public string? LinkUrl { get; set; }
     public string? VideoUrl { get; set; }
     public string? ImageStorageKey { get; set; }
+    public string? VideoStorageKey { get; set; }
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; } = true;
 }

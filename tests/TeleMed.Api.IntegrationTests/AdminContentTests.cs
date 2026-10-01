@@ -134,6 +134,9 @@ public class AdminContentTests(ApiFixture fixture) : IntegrationTest(fixture)
             videoUrl = "https://example.com/ad.mp4",
             displayOrder = 20,
         })).ReadAsync<AdminWaitingRoomItemDto>(HttpStatusCode.Created);
+        var withVideo = await (await admin.PutAsync($"/api/v1/admin/waiting-room-items/{ad.Id}/video",
+                DoctorFlows.File(DoctorFlows.Mp4, "ad.mp4", "video/mp4"), TestContext.Current.CancellationToken))
+            .ReadAsync<AdminWaitingRoomItemDto>();
 
         var published = await (await patient.GetAsync("/api/v1/waiting-room-content", TestContext.Current.CancellationToken))
             .ReadAsync<List<WaitingRoomItemDto>>();
@@ -149,13 +152,16 @@ public class AdminContentTests(ApiFixture fixture) : IntegrationTest(fixture)
             .ReadAsync<List<WaitingRoomItemDto>>();
         (await admin.DeleteAsync($"/api/v1/admin/waiting-room-items/{ad.Id}/image", TestContext.Current.CancellationToken))
             .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        var video = await Factory.CreateClient().GetAsync(withVideo.VideoFileUrl!, TestContext.Current.CancellationToken);
 
         created.Title.ShouldBe("How to prepare");
         created.Kind.ShouldBe(WaitingRoomItemKind.Article);
         withImage.ImageUrl.ShouldNotBeNull();
+        withVideo.VideoFileUrl.ShouldNotBeNull();
         file.StatusCode.ShouldBe(HttpStatusCode.OK);
+        video.StatusCode.ShouldBe(HttpStatusCode.OK);
         published.ShouldContain(i => i.Id == created.Id && i.ImageUrl != null);
-        published.ShouldContain(i => i.Id == ad.Id && i.Kind == WaitingRoomItemKind.Ad);
+        published.ShouldContain(i => i.Id == ad.Id && i.Kind == WaitingRoomItemKind.Ad && i.VideoFileUrl != null);
         afterHide.ShouldNotContain(i => i.Id == created.Id);
         afterHide.ShouldContain(i => i.Id == ad.Id);
     }

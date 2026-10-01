@@ -41,6 +41,7 @@ public static class PlatformPolicy
     public static readonly TimeSpan RefreshReuseGrace = TimeSpan.FromSeconds(30);
     public const long ProfilePhotoMaxBytes = 5 * 1024 * 1024;
     public const long DoctorDocumentMaxBytes = 5 * 1024 * 1024;
+    public const long WaitingRoomVideoMaxBytes = 25 * 1024 * 1024;
 
     public static readonly TimeSpan ErasureGracePeriod = TimeSpan.FromDays(30);
     public const long VaultMaxDocumentBytes = 10 * 1024 * 1024;

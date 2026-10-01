@@ -150,6 +150,34 @@ public sealed class ContentService(IContentRepository repository, IUnitOfWork un
         await storage.DeleteAsync(previous, ct);
     }
 
+    public async Task<AdminWaitingRoomItemDto> SetWaitingRoomItemVideoAsync(Guid id, Stream content, CancellationToken ct)
+    {
+        var upload = await DoctorFiles.ReadAsync(content, PlatformPolicy.WaitingRoomVideoMaxBytes, FileSignature.Videos, ct);
+        var item = await LoadWaitingRoomItemAsync(id, ct);
+        var key = $"waiting-room/{item.Id}/video-{Guid.CreateVersion7()}{FileSignature.Extension(upload.ContentType)}";
+        using var stream = new MemoryStream(upload.Bytes, writable: false);
+        await storage.SaveAsync(key, stream, ct);
+
+        var previous = item.VideoStorageKey;
+        item.VideoStorageKey = key;
+        await unitOfWork.SaveChangesAsync(ct);
+        if (previous is not null)
+        {
+            await storage.DeleteAsync(previous, ct);
+        }
+
+        return item.ToAdminDto(storage);
+    }
+
+    public async Task DeleteWaitingRoomItemVideoAsync(Guid id, CancellationToken ct)
+    {
+        var item = await LoadWaitingRoomItemAsync(id, ct);
+        var previous = item.VideoStorageKey ?? throw new NotFoundException("No video.");
+        item.VideoStorageKey = null;
+        await unitOfWork.SaveChangesAsync(ct);
+        await storage.DeleteAsync(previous, ct);
+    }
+
     private static void Apply(Drug drug, SaveDrugRequest request)
     {
         drug.Name = request.Name.Trim();

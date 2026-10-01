@@ -14,6 +14,7 @@ internal sealed class WaitingRoomItemConfiguration : IEntityTypeConfiguration<Wa
         builder.Property(i => i.LinkUrl).HasMaxLength(2_000);
         builder.Property(i => i.VideoUrl).HasMaxLength(2_000);
         builder.Property(i => i.ImageStorageKey).HasMaxLength(500);
+        builder.Property(i => i.VideoStorageKey).HasMaxLength(500);
         builder.HasIndex(i => i.DisplayOrder);
     }
 }

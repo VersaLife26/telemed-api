@@ -45,6 +45,7 @@ public sealed record WaitingRoomItemDto(
     string? LinkUrl,
     string? VideoUrl,
     string? ImageUrl,
+    string? VideoFileUrl,
     int DisplayOrder);
 
 public sealed record AdminWaitingRoomItemDto(
@@ -55,6 +56,7 @@ public sealed record AdminWaitingRoomItemDto(
     string? LinkUrl,
     string? VideoUrl,
     string? ImageUrl,
+    string? VideoFileUrl,
     int DisplayOrder,
     bool IsActive);
 

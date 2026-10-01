@@ -14993,6 +14993,180 @@
           }
         ]
       }
+    },
+    "/api/v1/admin/waiting-room-items/{id}/video": {
+      "put": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_PutVideo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminWaitingRoomItemDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "AdminWaitingRoomItems"
+        ],
+        "operationId": "AdminWaitingRoomItems_DeleteVideo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -15679,6 +15853,7 @@
           "linkUrl",
           "videoUrl",
           "imageUrl",
+          "videoFileUrl",
           "displayOrder",
           "isActive"
         ],
@@ -15713,6 +15888,12 @@
             ]
           },
           "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "videoFileUrl": {
             "type": [
               "null",
               "string"
@@ -22019,6 +22200,7 @@
           "linkUrl",
           "videoUrl",
           "imageUrl",
+          "videoFileUrl",
           "displayOrder"
         ],
         "type": "object",
@@ -22052,6 +22234,12 @@
             ]
           },
           "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "videoFileUrl": {
             "type": [
               "null",
               "string"

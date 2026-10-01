@@ -6,10 +6,13 @@ public static class FileSignature
     public const string Png = "image/png";
     public const string Webp = "image/webp";
     public const string Pdf = "application/pdf";
+    public const string Mp4 = "video/mp4";
+    public const string Webm = "video/webm";
 
     public const int HeaderLength = 12;
 
     public static readonly IReadOnlySet<string> Images = new HashSet<string> { Jpeg, Png, Webp };
+    public static readonly IReadOnlySet<string> Videos = new HashSet<string> { Mp4, Webm };
 
     public static string? DetectContentType(ReadOnlySpan<byte> header)
     {
@@ -28,7 +31,17 @@ public static class FileSignature
             return Webp;
         }
 
-        return header.StartsWith("%PDF-"u8) ? Pdf : null;
+        if (header.StartsWith("%PDF-"u8))
+        {
+            return Pdf;
+        }
+
+        if (header.Length >= 8 && header[4..8].SequenceEqual("ftyp"u8))
+        {
+            return Mp4;
+        }
+
+        return header.StartsWith((ReadOnlySpan<byte>)[0x1A, 0x45, 0xDF, 0xA3]) ? Webm : null;
     }
 
     public static string Extension(string contentType) => contentType switch
@@ -37,6 +50,8 @@ public static class FileSignature
         Png => ".png",
         Webp => ".webp",
         Pdf => ".pdf",
+        Mp4 => ".mp4",
+        Webm => ".webm",
         _ => throw new ArgumentOutOfRangeException(nameof(contentType), contentType, null),
     };
 
@@ -46,6 +61,8 @@ public static class FileSignature
         ".png" => Png,
         ".webp" => Webp,
         ".pdf" => Pdf,
+        ".mp4" => Mp4,
+        ".webm" => Webm,
         _ => null,
     };
 }

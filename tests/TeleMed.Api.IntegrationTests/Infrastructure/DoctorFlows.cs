@@ -23,6 +23,12 @@ public static class DoctorFlows
 
     public static readonly byte[] Pdf = "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n"u8.ToArray();
 
+    public static readonly byte[] Mp4 =
+    [
+        0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D,
+        0x00, 0x00, 0x00, 0x00, 0x69, 0x73, 0x6F, 0x6D, 0x6D, 0x70, 0x34, 0x31,
+    ];
+
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     public sealed record ApplicationSpec

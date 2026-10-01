@@ -19,7 +19,8 @@ internal static partial class ContentMapper
             item.Body,
             item.LinkUrl,
             item.VideoUrl,
-            ImageUrl(item, storage),
+            SignedUrl(item.ImageStorageKey, storage),
+            SignedUrl(item.VideoStorageKey, storage),
             item.DisplayOrder,
             item.IsActive);
 
@@ -31,11 +32,12 @@ internal static partial class ContentMapper
             item.Body,
             item.LinkUrl,
             item.VideoUrl,
-            ImageUrl(item, storage),
+            SignedUrl(item.ImageStorageKey, storage),
+            SignedUrl(item.VideoStorageKey, storage),
             item.DisplayOrder);
 
-    private static string? ImageUrl(WaitingRoomItem item, IFileStorage storage) =>
-        item.ImageStorageKey is { } key
-            ? storage.CreateSignedUrl(key, FileSignature.ContentTypeFromExtension(Path.GetExtension(key)) ?? "application/octet-stream")
+    private static string? SignedUrl(string? key, IFileStorage storage) =>
+        key is { } storageKey
+            ? storage.CreateSignedUrl(storageKey, FileSignature.ContentTypeFromExtension(Path.GetExtension(storageKey)) ?? "application/octet-stream")
             : null;
 }
