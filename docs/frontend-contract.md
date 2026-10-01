@@ -39,6 +39,8 @@ Every non-2xx response is `application/problem+json`:
 | `POST /auth/otp/send {phone, purpose, language}` → `{request_id, expires_in, attempts_remaining}` | `POST /auth/otp/send {phone \| email, language?}` → `{channel, expiresIn}`. There is no `purpose`. The first OTP sign-in creates a patient account. |
 | `POST /auth/otp/verify {phone, otp, purpose, device_id?}` | `POST /auth/otp/verify {phone \| email, code, language?}`. The field is now **`code`**. |
 | `POST /auth/login/email`, `POST /auth/register/email {email, password, name}` | Same paths. Register takes `{email, password, fullName, language?}`. |
+| — | `POST /auth/password/forgot {email}` → 204. Always the same response, whether or not the email exists. Sends a 30-minute link when the account is active. |
+| — | `POST /auth/password/reset {token, newPassword}` → the usual token response. Invalid or expired links return `401 invalid_reset_token`. |
 | `POST /auth/oauth/google {id_token, create_account}` | `POST /auth/google {idToken}`. It creates a patient account when the Google identity is unknown, so there is no flag. It returns 404 when Google sign-in is switched off. |
 | `POST /auth/refresh {refresh_token}` → `{access_token, refresh_token}` | `POST /auth/refresh {refreshToken}` → the full token response below. |
 | `POST /auth/logout {refresh_token}` | `POST /auth/logout {refreshToken}` → 204. `POST /auth/logout-all` (bearer) revokes every session. |

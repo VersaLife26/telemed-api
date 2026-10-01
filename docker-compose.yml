@@ -42,7 +42,9 @@ services:
       Prescriptions__HmacKey: dev-only-prescription-hmac-key-change-me-0123
       Prescriptions__VerifyBaseUrl: http://localhost:3000
       AppLinks__PatientAppUrl: http://localhost:3000
+      AppLinks__DoctorAppUrl: http://localhost:3002
       Cors__Origins__0: http://localhost:3000
+      Cors__Origins__1: http://localhost:3002
       Cors__AdminOrigins__0: http://localhost:3001
 
       # Capture senders write SMS and email to captured_messages, readable through /api/v1/test/captured-messages.

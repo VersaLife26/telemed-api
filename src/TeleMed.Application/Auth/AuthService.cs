@@ -1,3 +1,4 @@
+using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text;
 using TeleMed.Application.Abstractions;
@@ -11,11 +12,13 @@ namespace TeleMed.Application.Auth;
 public sealed class AuthService(
     IUserAccounts accounts,
     IOtpChallengeRepository challenges,
+    IPasswordResetTokenRepository passwordResets,
     IRefreshTokenRepository refreshTokens,
     IOtpCodes codes,
     ISmsSender sms,
     IEmailSender email,
     IGoogleTokenValidator google,
+    IAppLinks links,
     SessionIssuer sessions,
     SessionActivity sessionActivity,
     ICurrentActor actor,
@@ -177,6 +180,76 @@ public sealed class AuthService(
         return session.Response;
     }
 
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct)
+    {
+        if (!email.IsEnabled)
+        {
+            throw new ServiceUnavailableException("Password-reset email cannot be sent right now.");
+        }
+
+        var address = Emails.Normalize(request.Email);
+        var now = time.GetUtcNow();
+        if (await passwordResets.CountCreatedSinceAsync(address, now - PlatformPolicy.PasswordResetSendWindow, ct)
+            >= PlatformPolicy.PasswordResetSendLimit)
+        {
+            throw new TooManyRequestsException("Too many reset emails requested. Try again later.");
+        }
+
+        foreach (var previous in await passwordResets.ListActiveByEmailAsync(address, now, ct))
+        {
+            previous.ConsumedAt = now;
+        }
+
+        var user = await accounts.FindByEmailAsync(address, ct);
+        var canReset = user is { Status: UserStatus.Active };
+        var raw = Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(32));
+        passwordResets.Add(new PasswordResetToken
+        {
+            Email = address,
+            UserId = canReset ? user!.Id : null,
+            TokenHash = SessionIssuer.Hash(raw),
+            ExpiresAt = now + PlatformPolicy.PasswordResetTtl,
+        });
+        await unitOfWork.SaveChangesAsync(ct);
+
+        if (canReset)
+        {
+            var minutes = (int)PlatformPolicy.PasswordResetTtl.TotalMinutes;
+            await email.SendAsync(
+                address,
+                PasswordResetMessages.Subject(user!.Language),
+                PasswordResetMessages.Body(user.Language, links.PasswordReset(user.Role, raw), minutes),
+                ct);
+        }
+    }
+
+    public async Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct)
+    {
+        var now = time.GetUtcNow();
+        await using var transaction = await unitOfWork.BeginTransactionAsync(ct);
+        var token = await passwordResets.FindByHashForUpdateAsync(SessionIssuer.Hash(request.Token), ct);
+        if (token is null || token.ConsumedAt is not null || token.ExpiresAt <= now || token.UserId is null)
+        {
+            throw InvalidResetToken();
+        }
+
+        var user = await accounts.FindByIdAsync(token.UserId.Value, ct);
+        if (user is null)
+        {
+            throw InvalidResetToken();
+        }
+
+        EnsureActive(user);
+        token.ConsumedAt = now;
+        await accounts.ResetPasswordAsync(user, request.NewPassword);
+        await sessions.RevokeAllAsync(user, ct);
+        var session = sessions.Issue(user);
+        sessionActivity.LoggedIn(user);
+        await unitOfWork.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return session.Response;
+    }
+
     public async Task<AuthResponse> GoogleAsync(GoogleLoginRequest request, CancellationToken ct)
     {
         if (!google.IsEnabled)
@@ -308,4 +381,7 @@ public sealed class AuthService(
     }
 
     private static UnauthorizedException InvalidOtp() => new("otp_invalid", "The code is invalid or has expired.");
+
+    private static UnauthorizedException InvalidResetToken() =>
+        new("invalid_reset_token", "This reset link is invalid or has expired.");
 }

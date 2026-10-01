@@ -74,3 +74,20 @@ public sealed class RefreshRequestValidator : AbstractValidator<RefreshRequest>
         RuleFor(x => x.RefreshToken).NotEmpty().MaximumLength(200);
     }
 }
+
+public sealed class ForgotPasswordRequestValidator : AbstractValidator<ForgotPasswordRequest>
+{
+    public ForgotPasswordRequestValidator()
+    {
+        RuleFor(x => x.Email).ValidEmail();
+    }
+}
+
+public sealed class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequest>
+{
+    public ResetPasswordRequestValidator()
+    {
+        RuleFor(x => x.Token).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.NewPassword).ValidPassword();
+    }
+}

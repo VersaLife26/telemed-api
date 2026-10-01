@@ -9,6 +9,7 @@ namespace TeleMed.Application.Jobs;
 public sealed class HousekeepingJob(
     IRefreshTokenRepository refreshTokens,
     IOtpChallengeRepository otpChallenges,
+    IPasswordResetTokenRepository passwordResets,
     ICapturedMessageRepository capturedMessages,
     INotificationRepository notifications,
     IUnitOfWork unitOfWork,
@@ -22,6 +23,7 @@ public sealed class HousekeepingJob(
         var cutoff = now - PlatformPolicy.HousekeepingRetention;
         await DrainAsync(() => refreshTokens.ListPurgeableAsync(cutoff, BatchSize, ct), refreshTokens.RemoveRange, ct);
         await DrainAsync(() => otpChallenges.ListCreatedBeforeAsync(cutoff, BatchSize, ct), otpChallenges.RemoveRange, ct);
+        await DrainAsync(() => passwordResets.ListCreatedBeforeAsync(cutoff, BatchSize, ct), passwordResets.RemoveRange, ct);
         await DrainAsync(() => capturedMessages.ListCreatedBeforeAsync(cutoff, BatchSize, ct), capturedMessages.RemoveRange, ct);
         await DrainAsync(
             () => notifications.ListSentWithBodyBeforeAsync(now - PlatformPolicy.NotificationBodyRetention, BatchSize, ct),

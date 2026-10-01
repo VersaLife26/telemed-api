@@ -25,6 +25,7 @@ public class StartupValidationTests(ApiFixture fixture) : IntegrationTest(fixtur
     [InlineData("Turn:Provider", "Cloudflare", "Turn:Provider=Cloudflare")]
     [InlineData("Turn:Provider", "Static", "Turn:Provider=Static")]
     [InlineData("AppLinks:PatientAppUrl", "not-a-url", "AppLinks:PatientAppUrl")]
+    [InlineData("AppLinks:DoctorAppUrl", "not-a-url", "AppLinks:DoctorAppUrl")]
     [InlineData("Prescriptions:HmacKey", "too-short", "Prescriptions:HmacKey")]
     [InlineData("Prescriptions:VerifyBaseUrl", "", "Prescriptions:VerifyBaseUrl")]
     public async Task Misconfigured_switches_fail_fast(string key, string value, string expectedMessage)

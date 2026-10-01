@@ -38,6 +38,10 @@ public static class PlatformPolicy
     public const int OtpSendLimit = 3;
     public static readonly TimeSpan OtpSendWindow = TimeSpan.FromHours(1);
 
+    public static readonly TimeSpan PasswordResetTtl = TimeSpan.FromMinutes(30);
+    public const int PasswordResetSendLimit = 3;
+    public static readonly TimeSpan PasswordResetSendWindow = TimeSpan.FromHours(1);
+
     public static readonly TimeSpan RefreshReuseGrace = TimeSpan.FromSeconds(30);
     public const long ProfilePhotoMaxBytes = 5 * 1024 * 1024;
     public const long DoctorDocumentMaxBytes = 5 * 1024 * 1024;

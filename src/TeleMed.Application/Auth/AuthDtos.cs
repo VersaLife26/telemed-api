@@ -13,6 +13,10 @@ public sealed record RegisterEmailRequest(string Email, string Password, string 
 
 public sealed record LoginEmailRequest(string Email, string Password);
 
+public sealed record ForgotPasswordRequest(string Email);
+
+public sealed record ResetPasswordRequest(string Token, string NewPassword);
+
 public sealed record GoogleLoginRequest(string IdToken);
 
 public sealed record RefreshRequest(string RefreshToken);

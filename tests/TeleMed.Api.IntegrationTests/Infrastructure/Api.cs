@@ -75,6 +75,16 @@ public static partial class Api
         return SixDigits().Match(message.Body).Value;
     }
 
+    public static async Task<string> LatestResetTokenAsync(this TeleMedApiFactory factory, string recipient)
+    {
+        var response = await factory.CreateTestInboxClient()
+            .GetAsync($"/api/v1/test/captured-messages/latest?recipient={Uri.EscapeDataString(recipient)}&channel=email", Ct);
+        var message = await response.ReadAsync<CapturedMessageDto>();
+        var token = ResetToken().Match(message.Body).Groups[1].Value;
+        token.ShouldNotBeNullOrEmpty();
+        return token;
+    }
+
     public static async Task<AuthResponse> SignInWithPhoneAsync(this TeleMedApiFactory factory, string phone = "+94771234567")
     {
         var client = factory.CreateClient();
@@ -156,4 +166,7 @@ public static partial class Api
 
     [GeneratedRegex(@"\b\d{6}\b")]
     private static partial Regex SixDigits();
+
+    [GeneratedRegex(@"[?&]token=([^&\s]+)")]
+    private static partial Regex ResetToken();
 }

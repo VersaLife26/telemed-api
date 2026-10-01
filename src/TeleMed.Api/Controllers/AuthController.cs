@@ -56,4 +56,20 @@ public sealed class AuthController(AuthService auth) : ControllerBase
         await auth.LogoutAllAsync(ct);
         return NoContent();
     }
+
+    [HttpPost("password/forgot")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingSetup.OtpSend)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<NoContentResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
+    {
+        await auth.ForgotPasswordAsync(request, ct);
+        return NoContent();
+    }
+
+    [HttpPost("password/reset")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingSetup.Login)]
+    public Task<AuthResponse> ResetPassword(ResetPasswordRequest request, CancellationToken ct) =>
+        auth.ResetPasswordAsync(request, ct);
 }

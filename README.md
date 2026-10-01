@@ -85,7 +85,8 @@ All options are validated at startup (`ValidateOnStart`), so a switch that is on
 | `Storage:RootPath` / `Storage:SigningKey` | — | | Required. The file root (`/var/lib/telemed/files` in the image) and the key for signed `/files/{token}` URLs. `UrlTtl` defaults to 5m. |
 | `Crypto:BankDataKey` | — | | Required. A base64 32-byte AES key for doctors' bank account numbers. |
 | `Prescriptions:HmacKey` / `Prescriptions:VerifyBaseUrl` | — | | Required. The QR code encodes `{VerifyBaseUrl}/p/{id}?h={hmac}`. |
-| `AppLinks:PatientAppUrl` | "" | | The base for links in notifications. |
+| `AppLinks:PatientAppUrl` | "" | | The base for links in notifications and patient password-reset emails. |
+| `AppLinks:DoctorAppUrl` | "" | | Doctor-app origin for password-reset emails. Falls back to `PatientAppUrl` when empty. |
 | `AdminAuth:CloudflareAccess:Enabled` | true | | Needs `TeamDomain` and `Audience`. |
 | `AdminAuth:LocalJwt:Enabled` | false | **test** | HS256 admin tokens (`iss telemed-admin-local`, `aud telemed-admin`, `email` claim) signed with `AdminAuth:LocalJwt:SigningKey`. |
 | `AdminAuth:IpAllowlist` | [] | | IPs or CIDRs. An empty list denies every admin request. |
@@ -115,7 +116,7 @@ Each job runs on its own `PeriodicTimer` inside a Postgres advisory lock, so a s
 | Reminders | 5 min | Sends 24h and 1h reminders, deduplicated by key. |
 | DailyPayouts | 1 h (acts once after 02:00 Asia/Colombo) | Builds yesterday's batch. A payment is payable once its appointment is completed or no_show and both the capture and that outcome are more than 24h old, with no refund in flight. Clawbacks from refunds that settle after payout are deducted, and a shortfall carries forward. Re-running is a no-op. |
 | UserErasure | 1 day | Anonymises accounts 30 days after deletion, deletes the photo and revokes tokens. Clinical records are kept. |
-| Housekeeping | 1 day | Purges expired refresh tokens, OTP challenges and old captured messages. |
+| Housekeeping | 1 day | Purges expired refresh tokens, OTP challenges, password-reset tokens and old captured messages. |
 
 ## End-to-end smoke flow
 

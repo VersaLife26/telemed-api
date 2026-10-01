@@ -45,6 +45,7 @@ public sealed class TeleMedApiFactory(string connectionString) : WebApplicationF
             ["Testing:InstantMeetings:Enabled"] = "true",
             ["Video:RoomTokenKey"] = "integration-test-room-token-key-0123456789",
             ["AppLinks:PatientAppUrl"] = "https://app.telemed.test",
+            ["AppLinks:DoctorAppUrl"] = "https://doctor.telemed.test",
             ["Prescriptions:HmacKey"] = PrescriptionHmacKey,
             ["Prescriptions:VerifyBaseUrl"] = "https://verify.telemed.test",
             ["RateLimiting:OtpSend:PermitLimit"] = "10000",

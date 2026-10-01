@@ -13,6 +13,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     public DbSet<Icd10Code> Icd10Codes => Set<Icd10Code>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<CapturedMessage> CapturedMessages => Set<CapturedMessage>();
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();

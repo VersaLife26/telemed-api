@@ -74,6 +74,7 @@ public static class DependencyInjection
         services.AddScoped<IReferenceDataRepository, ReferenceDataRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
+        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.AddScoped<ICapturedMessageRepository, CapturedMessageRepository>();
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<IContentRepository, ContentRepository>();
@@ -255,7 +256,7 @@ public static class DependencyInjection
             .ValidateOnStart();
         services.AddOptions<AppLinksOptions>()
             .Bind(configuration.GetSection(AppLinksOptions.Section))
-            .Validate(o => o.IsValid(), "AppLinks:PatientAppUrl must be an absolute http(s) URL when set.")
+            .Validate(o => o.IsValid(), "AppLinks:PatientAppUrl and AppLinks:DoctorAppUrl must be absolute http(s) URLs when set.")
             .ValidateOnStart();
 
         services.AddSingleton<IRoomTokens, HmacRoomTokens>();
