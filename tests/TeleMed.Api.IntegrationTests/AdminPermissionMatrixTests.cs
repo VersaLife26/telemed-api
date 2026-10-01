@@ -92,11 +92,12 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         new("GET", "admin/waiting-room-items/{id:guid}", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}"),
         new("PUT", "admin/waiting-room-items/{id:guid}", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}",
             new { kind = "article", title = "Matrix wait updated", body = "Updated copy.", displayOrder = 2, isActive = true }),
-        new("DELETE", "admin/waiting-room-items/{id:guid}", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}"),
+        // Media routes before DELETE — hard delete removes the row, so image/video would 404 afterward.
         new("PUT", "admin/waiting-room-items/{id:guid}/image", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/image"),
         new("DELETE", "admin/waiting-room-items/{id:guid}/image", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/image"),
         new("PUT", "admin/waiting-room-items/{id:guid}/video", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/video"),
         new("DELETE", "admin/waiting-room-items/{id:guid}/video", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}/video"),
+        new("DELETE", "admin/waiting-room-items/{id:guid}", AdminPermission.Content, t => $"admin/waiting-room-items/{t.WaitingRoomItemId}"),
         new("GET", "admin/doctor-applications", AdminPermission.Credentialing, _ => "admin/doctor-applications"),
         new("GET", "admin/doctor-applications/{id:guid}", AdminPermission.Credentialing, t => $"admin/doctor-applications/{t.ReviewedApplicationId}"),
         new("GET", "admin/doctor-applications/{id:guid}/documents/{documentId:guid}", AdminPermission.Credentialing,
