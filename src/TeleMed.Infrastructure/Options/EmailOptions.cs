@@ -15,7 +15,11 @@ public sealed class EmailOptions
 
     public EmailProvider Provider { get; set; } = EmailProvider.None;
     public string FromAddress { get; set; } = "";
-    public string FromName { get; set; } = "VersaLife";
+    public string FromName { get; set; } = "VersaLife Health";
+    /// <summary>Header logo in outgoing mail. Defaults to {PatientAppUrl}/assets/logo.svg.</summary>
+    public string? LogoUrl { get; set; }
+    /// <summary>Small mark beside the CTA. Defaults to {PatientAppUrl}/assets/logo-small.svg.</summary>
+    public string? MarkLogoUrl { get; set; }
     public SmtpOptions Smtp { get; set; } = new();
 }
 

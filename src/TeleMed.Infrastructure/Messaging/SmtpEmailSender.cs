@@ -6,18 +6,23 @@ using TeleMed.Infrastructure.Options;
 
 namespace TeleMed.Infrastructure.Messaging;
 
-internal sealed class SmtpEmailSender(IOptions<EmailOptions> options) : IEmailSender
+internal sealed class SmtpEmailSender(IOptions<EmailOptions> email, IOptions<AppLinksOptions> links) : IEmailSender
 {
     public bool IsEnabled => true;
 
     public async Task SendAsync(string to, string subject, string body, CancellationToken ct)
     {
-        var o = options.Value;
+        var o = email.Value;
+        var (_, html) = BrandedEmailBody.Format(email, links, subject, body);
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(o.FromName, o.FromAddress));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
-        message.Body = new TextPart("plain") { Text = body };
+        message.Body = new MultipartAlternative
+        {
+            new TextPart("plain") { Text = body },
+            new TextPart("html") { Text = html },
+        };
 
         using var client = new SmtpClient();
         await client.ConnectAsync(o.Smtp.Host, o.Smtp.Port, o.Smtp.Security, ct);

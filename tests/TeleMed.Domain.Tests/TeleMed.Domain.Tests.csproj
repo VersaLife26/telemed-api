@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\TeleMed.Application\TeleMed.Application.csproj" />
     <ProjectReference Include="..\..\src\TeleMed.Domain\TeleMed.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
