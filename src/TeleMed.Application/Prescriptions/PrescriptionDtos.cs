@@ -15,7 +15,9 @@ public sealed record PrescriptionItemRequest(
     string? Instructions,
     bool IsGeneric);
 
-public sealed record IssuePrescriptionRequest(IReadOnlyList<PrescriptionItemRequest> Items);
+public sealed record IssuePrescriptionRequest(
+    IReadOnlyList<PrescriptionItemRequest> Items,
+    IReadOnlyList<string>? Investigations);
 
 public sealed record CancelPrescriptionRequest(string? Reason);
 
@@ -45,7 +47,8 @@ public sealed record PrescriptionDto(
     DateTimeOffset? CancelledAt,
     string? CancellationReason,
     bool IsTest,
-    IReadOnlyList<PrescriptionItemDto> Items);
+    IReadOnlyList<PrescriptionItemDto> Items,
+    IReadOnlyList<string> Investigations);
 
 public sealed record PrescriptionQuery : PageQuery;
 
@@ -63,11 +66,12 @@ public sealed record PrescriptionVerificationDto(
     string? DoctorName,
     string? DoctorSlmc,
     string? PatientInitials,
-    IReadOnlyList<VerifiedItemDto>? Items)
+    IReadOnlyList<VerifiedItemDto>? Items,
+    IReadOnlyList<string>? Investigations)
 {
     public const string InvalidReason = "invalid";
     public const string TestReason = "test";
     public const string CancelledReason = "cancelled";
 
-    public static PrescriptionVerificationDto Invalid { get; } = new(false, InvalidReason, null, null, null, null, null);
+    public static PrescriptionVerificationDto Invalid { get; } = new(false, InvalidReason, null, null, null, null, null, null);
 }

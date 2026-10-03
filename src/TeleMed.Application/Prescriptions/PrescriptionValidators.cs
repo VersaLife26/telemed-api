@@ -10,6 +10,9 @@ public sealed class IssuePrescriptionRequestValidator : AbstractValidator<IssueP
     {
         RuleFor(x => x.Items).NotEmpty().Must(i => i.Count <= Prescription.MaxItems)
             .WithMessage($"A prescription can have at most {Prescription.MaxItems} items.");
+        RuleFor(x => x.Investigations).Must(i => i is null || i.Count <= Prescription.MaxInvestigations)
+            .WithMessage($"A prescription can have at most {Prescription.MaxInvestigations} investigations.");
+        RuleForEach(x => x.Investigations).MaximumLength(300);
         RuleForEach(x => x.Items).ChildRules(item =>
         {
             item.RuleFor(x => x.DrugName).NotEmpty().Must(v => v.Trim().Length > 0).MaximumLength(200);

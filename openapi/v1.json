@@ -18533,6 +18533,15 @@
             "items": {
               "$ref": "#/components/schemas/PrescriptionItemRequest"
             }
+          },
+          "investigations": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -20341,7 +20350,8 @@
           "cancelledAt",
           "cancellationReason",
           "isTest",
-          "items"
+          "items",
+          "investigations"
         ],
         "type": "object",
         "properties": {
@@ -20397,6 +20407,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PrescriptionItemDto"
+            }
+          },
+          "investigations": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         }
@@ -20584,6 +20600,15 @@
             ],
             "items": {
               "$ref": "#/components/schemas/VerifiedItemDto"
+            }
+          },
+          "investigations": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
             }
           }
         }

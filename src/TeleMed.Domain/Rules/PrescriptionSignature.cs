@@ -23,8 +23,24 @@ public static class PrescriptionSignature
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString())));
     }
 
-    public static string CanonicalPayload(Prescription p) =>
-        string.Join('|', CanonicalVersion, p.Id.ToString("D"), p.DoctorId.ToString("D"), p.PatientId.ToString("D"), Rfc3339Nano(p.IssuedAt), ItemsDigest(p.Items));
+    public static string InvestigationsDigest(IEnumerable<string> investigations)
+    {
+        var builder = new StringBuilder();
+        foreach (var line in investigations)
+        {
+            builder.Append(line).Append('\n');
+        }
+
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString())));
+    }
+
+    public static string CanonicalPayload(Prescription p)
+    {
+        var payload = string.Join('|', CanonicalVersion, p.Id.ToString("D"), p.DoctorId.ToString("D"), p.PatientId.ToString("D"), Rfc3339Nano(p.IssuedAt), ItemsDigest(p.Items));
+        return p.Investigations.Count == 0
+            ? payload
+            : string.Join('|', "v2", p.Id.ToString("D"), p.DoctorId.ToString("D"), p.PatientId.ToString("D"), Rfc3339Nano(p.IssuedAt), ItemsDigest(p.Items), InvestigationsDigest(p.Investigations));
+    }
 
     public static string Sign(ReadOnlySpan<byte> key, Prescription p) => Convert.ToHexStringLower(Mac(key, p));
 

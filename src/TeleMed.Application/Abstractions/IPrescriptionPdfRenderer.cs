@@ -17,6 +17,7 @@ public sealed record PrescriptionPdf(
     decimal? PatientWeightKg,
     string? PatientAllergies,
     IReadOnlyList<PrescriptionPdfItem> Items,
+    IReadOnlyList<string> Investigations,
     byte[]? Signature,
     byte[]? Seal,
     string VerifyUrl,

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>VersaLife prescription preview</title>
+  <style>
+    :root {
+      --navy: #015591;
+      --mint: #50C898;
+      --ink: #243447;
+      --muted: #5c6b7a;
+      --panel: #f4f8fc;
+      --line: #c5d6e6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #dde8f0;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+    }
+    .toolbar {
+      padding: 12px 20px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 14px;
+    }
+    .stage { padding: 28px 16px 48px; display: flex; justify-content: center; }
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      background: #fff;
+      box-shadow: 0 12px 40px rgba(1, 85, 145, 0.16);
+      display: flex;
+      flex-direction: column;
+    }
+    header.band {
+      background: var(--navy);
+      color: #fff;
+      padding: 18px 22px;
+      display: grid;
+      grid-template-columns: 64px 1fr 92px;
+      gap: 12px;
+      align-items: center;
+    }
+    .rx { font-size: 42px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+    .doc-name { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+    .doc-meta { margin: 0; font-size: 12px; color: #d7e8f4; line-height: 1.45; }
+    .doc-slmc { margin: 6px 0 0; font-size: 12px; color: #e8f6f0; }
+    .doc-brand { margin: 2px 0 0; font-size: 11px; color: #b8d4e8; }
+    .qr {
+      background: #fff;
+      padding: 6px;
+      width: 84px;
+    }
+    .qr svg { display: block; width: 72px; height: 72px; }
+    .qr-cap { text-align: center; font-size: 10px; color: #d7e8f4; margin-top: 6px; }
+    .mint { height: 8px; background: var(--mint); }
+    .body { padding: 18px 26px 8px; flex: 1; }
+    .patient {
+      background: #e8f2fa;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+    }
+    .patient .row { display: grid; grid-template-columns: 3fr 1fr 1fr; gap: 8px; }
+    .patient .row.half { grid-template-columns: 3fr 2fr 0; }
+    .patient .lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; color: var(--navy); margin-bottom: 2px; }
+    .patient .val { font-size: 14px; font-weight: 700; }
+    .patient .val.plain { font-weight: 500; }
+    .patient .allergy { margin-top: 10px; font-size: 13px; }
+    .patient .allergy .lbl { margin-bottom: 2px; }
+    h2 { margin: 0 0 14px; font-size: 14px; color: var(--navy); }
+    .med { display: grid; grid-template-columns: 36px 1fr; gap: 4px 8px; margin-bottom: 18px; }
+    .m-index { font-weight: 700; color: var(--navy); font-size: 14px; }
+    .m-title { font-weight: 700; font-size: 14px; margin: 0; }
+    .generic { margin: 2px 0 0; font-size: 11px; font-style: italic; color: var(--muted); }
+    .take { margin: 6px 0 4px; font-size: 11px; color: var(--muted); }
+    .med ul { margin: 0; padding: 0; list-style: none; }
+    .med li { font-size: 13px; line-height: 1.45; padding-left: 12px; position: relative; }
+    .med li::before { content: "•"; color: var(--navy); position: absolute; left: 0; }
+    footer.band {
+      padding: 4px 26px 16px;
+    }
+    .sign-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+    .sign-line { border-top: 1px solid var(--navy); padding-top: 6px; font-size: 11px; color: var(--muted); width: 180px; }
+    .sign-line strong { display: block; color: var(--navy); }
+    .seal { text-align: right; font-size: 10px; color: var(--muted); min-width: 90px; }
+    .legal {
+      display: grid;
+      grid-template-columns: 1fr 64px;
+      gap: 16px;
+      align-items: end;
+      border-top: 1px solid #d2dce6;
+      padding-top: 10px;
+    }
+    .legal p { margin: 0 0 6px; font-size: 9px; line-height: 1.45; color: var(--muted); }
+    .legal img { width: 58px; height: auto; justify-self: end; }
+    @media print {
+      body { background: #fff; }
+      .toolbar, .stage { padding: 0; }
+      .page { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">Static preview — same layout as the issued PDF (open this file in a browser). Header uses VersaLife navy, not the sample’s orange.</div>
+  <div class="stage">
+    <article class="page" aria-label="Sample prescription">
+      <header class="band">
+        <div class="rx" aria-hidden="true">Rx</div>
+        <div>
+          <p class="doc-name">Dr. Sumudu Weragoda</p>
+          <p class="doc-meta">MBBS (Colombo), MD (Family Medicine)<br />General Practitioner · Sri Lanka</p>
+          <p class="doc-slmc">SLMC 19782  ·  Issued 03 Oct 2026</p>
+          <p class="doc-brand">VersaLife Telemedicine · Sri Lanka</p>
+        </div>
+        <div>
+          <div class="qr" aria-label="Verification QR code">
+            <svg viewBox="0 0 29 29" xmlns="http://www.w3.org/2000/svg" role="img">
+              <rect width="29" height="29" fill="#fff"/>
+              <g fill="#015591">
+                <rect x="2" y="2" width="7" height="7"/><rect x="3.5" y="3.5" width="4" height="4" fill="#fff"/><rect x="4.5" y="4.5" width="2" height="2"/>
+                <rect x="20" y="2" width="7" height="7"/><rect x="21.5" y="3.5" width="4" height="4" fill="#fff"/><rect x="22.5" y="4.5" width="2" height="2"/>
+                <rect x="2" y="20" width="7" height="7"/><rect x="3.5" y="21.5" width="4" height="4" fill="#fff"/><rect x="4.5" y="22.5" width="2" height="2"/>
+                <rect x="11" y="2" width="2" height="2"/><rect x="14" y="3" width="2" height="2"/><rect x="17" y="2" width="2" height="3"/>
+                <rect x="11" y="6" width="3" height="2"/><rect x="16" y="7" width="2" height="2"/>
+                <rect x="2" y="11" width="2" height="3"/><rect x="5" y="13" width="3" height="2"/><rect x="10" y="11" width="2" height="2"/>
+                <rect x="13" y="12" width="4" height="2"/><rect x="19" y="11" width="2" height="3"/><rect x="23" y="13" width="4" height="2"/>
+                <rect x="11" y="16" width="2" height="3"/><rect x="15" y="16" width="3" height="2"/><rect x="20" y="16" width="2" height="2"/>
+                <rect x="24" y="17" width="3" height="2"/><rect x="11" y="21" width="2" height="2"/><rect x="14" y="20" width="2" height="4"/>
+                <rect x="18" y="22" width="3" height="2"/><rect x="22" y="21" width="2" height="3"/><rect x="25" y="24" width="2" height="3"/>
+                <rect x="11" y="25" width="4" height="2"/><rect x="17" y="26" width="2" height="1"/>
+              </g>
+            </svg>
+          </div>
+          <p class="qr-cap">Scan to verify</p>
+        </div>
+      </header>
+      <div class="mint"></div>
+      <div class="body">
+        <section class="patient">
+          <div class="row">
+            <div><div class="lbl">PATIENT</div><div class="val">Lelath Anuradha</div></div>
+            <div><div class="lbl">AGE</div><div class="val plain">34 years</div></div>
+            <div><div class="lbl">DATE</div><div class="val plain">03 Oct 2026</div></div>
+          </div>
+          <div class="row half" style="margin-top:10px">
+            <div><div class="lbl">SEX</div><div class="val plain">male</div></div>
+            <div><div class="lbl">WEIGHT</div><div class="val plain">72 kg</div></div>
+          </div>
+          <div class="allergy">
+            <div class="lbl">ALLERGIES</div>
+            Penicillin — confirm culture result before first dose
+          </div>
+        </section>
+        <h2>Medication</h2>
+        <div class="med">
+          <div class="m-index">M1</div>
+          <div>
+            <p class="m-title">Augmentin 625 mg Tablet</p>
+            <p class="take">Take</p>
+            <ul>
+              <li>1 tablet</li>
+              <li>Twice a day</li>
+              <li>For 3 days</li>
+              <li>Quantity 6</li>
+              <li>Orally</li>
+              <li>After meals</li>
+              <li>After urine culture</li>
+            </ul>
+          </div>
+        </div>
+        <div class="med">
+          <div class="m-index">M2</div>
+          <div>
+            <p class="m-title">Desatrol 5 mg Tablet</p>
+            <p class="generic">Generic</p>
+            <p class="take">Take</p>
+            <ul>
+              <li>1 tablet</li>
+              <li>Twice a day</li>
+              <li>For 5 days</li>
+              <li>Quantity 10</li>
+              <li>Orally</li>
+            </ul>
+          </div>
+        </div>
+        <h2>Investigations</h2>
+        <div class="med">
+          <div class="m-index">I1</div>
+          <div>
+            <p class="m-title" style="font-weight:500">Full/Complete Urine Report (FUR/CUR)</p>
+          </div>
+        </div>
+      </div>
+      <footer class="band">
+        <div class="sign-row">
+          <div>
+            <div class="sign-line">Doctor's signature<br /><strong>Dr. Sumudu Weragoda</strong></div>
+          </div>
+          <div class="seal">Seal</div>
+        </div>
+        <div class="legal">
+          <div>
+            <p>I, the licensed medical practitioner above, confirm this is my intent, and authorise by this writing that the specified medicines are dispensed for use by the designated individual above-named.</p>
+            <p>Issued by VersaLife Telemedicine. A pharmacist can confirm this prescription by scanning the code.  ·  8f3c2a10-4b6e-4d91-9c2a-1e7b5d4f8a21</p>
+          </div>
+          <img src="../src/TeleMed.Infrastructure/Pdf/Assets/versalife-logo.png" alt="VersaLife Health" />
+        </div>
+      </footer>
+    </article>
+  </div>
+</body>
+</html>

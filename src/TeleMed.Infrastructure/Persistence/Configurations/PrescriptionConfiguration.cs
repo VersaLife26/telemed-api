@@ -17,6 +17,7 @@ internal sealed class PrescriptionConfiguration : IEntityTypeConfiguration<Presc
         builder.Property(p => p.DoctorQualifications).HasMaxLength(2000);
         builder.Property(p => p.VerificationHmac).HasMaxLength(64).IsFixedLength();
         builder.Property(p => p.CancellationReason).HasMaxLength(1000);
+        builder.Property(p => p.Investigations).HasJsonbConversion();
         builder.Property(p => p.Version).IsRowVersion();
 
         builder.HasOne<Appointment>().WithOne().HasForeignKey<Prescription>(p => p.AppointmentId).OnDelete(DeleteBehavior.Restrict);

@@ -6,6 +6,7 @@ namespace TeleMed.Domain.Entities;
 public class Prescription : Entity
 {
     public const int MaxItems = 30;
+    public const int MaxInvestigations = 20;
 
     public Guid AppointmentId { get; init; }
     public Guid DoctorId { get; init; }
@@ -20,5 +21,6 @@ public class Prescription : Entity
     public string? CancellationReason { get; set; }
     public bool IsTest { get; init; }
     public List<PrescriptionItem> Items { get; init; } = [];
+    public List<string> Investigations { get; init; } = [];
     public uint Version { get; init; }
 }

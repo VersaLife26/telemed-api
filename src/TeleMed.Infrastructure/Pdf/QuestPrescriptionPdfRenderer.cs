@@ -14,7 +14,6 @@ internal sealed class QuestPrescriptionPdfRenderer(ILogger<QuestPrescriptionPdfR
     private const string Navy = "#015591";
     private const string Mint = "#50C898";
     private const string CardBackground = "#E8F2FA";
-    private const string StripedRow = "#F5F8FC";
     private const string Watermark = "#55D32F2F";
 
     private static readonly byte[] Logo = LoadLogo();
@@ -26,85 +25,111 @@ internal sealed class QuestPrescriptionPdfRenderer(ILogger<QuestPrescriptionPdfR
         var signature = Decode(p.Signature, p.Id, "signature");
         var seal = Decode(p.Seal, p.Id, "seal");
         var doctorName = "Dr. " + DoctorName(p.DoctorName);
+        var issued = TimeZoneInfo.ConvertTime(p.IssuedAt, Colombo).ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
 
         return Document.Create(document => document.Page(page =>
         {
             page.Size(PageSizes.A4);
-            page.Margin(14, Unit.Millimetre);
+            page.Margin(0);
             page.DefaultTextStyle(t => t.FontSize(10).FontColor(Colors.Grey.Darken4));
 
             page.Header().Column(header =>
             {
-                header.Item().Row(row =>
-                {
-                    row.ConstantItem(16, Unit.Millimetre).Image(Logo);
-                    row.ConstantItem(4, Unit.Millimetre);
-                    row.RelativeItem().Column(brand =>
+                header.Item().Background(Navy).PaddingHorizontal(14, Unit.Millimetre).PaddingVertical(10, Unit.Millimetre)
+                    .Row(row =>
                     {
-                        brand.Item().Text("VersaLife").Bold().FontSize(16).FontColor(Navy);
-                        brand.Item().Text("Telemedicine").FontSize(9).FontColor(Colors.Grey.Darken2);
+                        row.ConstantItem(22, Unit.Millimetre).AlignMiddle().Text("Rx").Bold().FontSize(36).FontColor(Colors.White);
+                        row.RelativeItem().PaddingLeft(4, Unit.Millimetre).AlignMiddle().Column(doctor =>
+                        {
+                            doctor.Item().Text(doctorName).Bold().FontSize(16).FontColor(Colors.White);
+                            foreach (var line in p.DoctorQualifications.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                            {
+                                doctor.Item().Text(line).FontSize(9).FontColor("#D7E8F4");
+                            }
+
+                            doctor.Item().PaddingTop(1, Unit.Millimetre)
+                                .Text($"SLMC {p.DoctorSlmc}  ·  Issued {issued}")
+                                .FontSize(9).FontColor("#E8F6F0");
+                            doctor.Item().Text("VersaLife Telemedicine · Sri Lanka").FontSize(8).FontColor("#B8D4E8");
+                        });
+                        row.ConstantItem(32, Unit.Millimetre).AlignRight().AlignMiddle().Column(code =>
+                        {
+                            code.Item().Background(Colors.White).Padding(2, Unit.Millimetre).Width(26, Unit.Millimetre).Image(qr);
+                            code.Item().AlignCenter().PaddingTop(1, Unit.Millimetre)
+                                .Text("Scan to verify").FontSize(7).FontColor("#D7E8F4");
+                        });
                     });
-                    row.RelativeItem().AlignRight().Column(title =>
-                    {
-                        title.Item().AlignRight().Text("PRESCRIPTION").Bold().FontSize(11).FontColor(Navy);
-                        title.Item().AlignRight().Text("Sri Lanka").FontSize(8).FontColor(Colors.Grey.Darken1);
-                    });
-                });
-                header.Item().PaddingTop(3, Unit.Millimetre).LineHorizontal(1.6f, Unit.Millimetre).LineColor(Mint);
+                header.Item().Height(2.2f, Unit.Millimetre).Background(Mint);
             });
 
-            page.Content().PaddingTop(6, Unit.Millimetre).Column(content =>
+            page.Content().PaddingHorizontal(14, Unit.Millimetre).PaddingTop(6, Unit.Millimetre).Column(content =>
             {
-                content.Spacing(2, Unit.Millimetre);
-                content.Item().Text(doctorName).Bold().FontSize(13).FontColor(Navy);
-                foreach (var line in p.DoctorQualifications.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                content.Item().Background(CardBackground).Padding(4, Unit.Millimetre).Column(card => PatientCard(card, p, issued));
+                content.Item().PaddingTop(6, Unit.Millimetre).Text("Medication").Bold().FontSize(11).FontColor(Navy);
+                content.Item().PaddingTop(3, Unit.Millimetre);
+                for (var i = 0; i < p.Items.Count; i++)
                 {
-                    content.Item().Text(line);
+                    content.Item().PaddingBottom(5, Unit.Millimetre).Element(c => Medication(c, p.Items[i], i + 1));
                 }
 
-                content.Item().Text($"SLMC Registration No. {p.DoctorSlmc}").Bold().FontColor(Navy);
-                content.Item().PaddingTop(2, Unit.Millimetre).Background(CardBackground).Padding(4, Unit.Millimetre).Column(card => PatientCard(card, p));
-                content.Item().PaddingTop(4, Unit.Millimetre).Text("Prescription").Bold().FontSize(14).FontColor(Navy);
-                content.Item().Element(c => Items(c, p.Items));
-                content.Item().PaddingTop(12, Unit.Millimetre).Row(row =>
+                if (p.Investigations.Count > 0)
+                {
+                    content.Item().PaddingTop(2, Unit.Millimetre).Text("Investigations").Bold().FontSize(11).FontColor(Navy);
+                    content.Item().PaddingTop(3, Unit.Millimetre);
+                    for (var i = 0; i < p.Investigations.Count; i++)
+                    {
+                        var index = i + 1;
+                        var name = p.Investigations[i];
+                        content.Item().PaddingBottom(2, Unit.Millimetre).Row(row =>
+                        {
+                            row.ConstantItem(10, Unit.Millimetre).Text($"I{index}").Bold().FontSize(11).FontColor(Navy);
+                            row.RelativeItem().Text(name).FontSize(11);
+                        });
+                    }
+                }
+            });
+
+            page.Footer().PaddingHorizontal(14, Unit.Millimetre).PaddingBottom(10, Unit.Millimetre).Column(footer =>
+            {
+                footer.Item().PaddingBottom(4, Unit.Millimetre).Row(row =>
                 {
                     row.ConstantItem(62, Unit.Millimetre).Column(sign =>
                     {
-                        var box = sign.Item().Height(20, Unit.Millimetre);
+                        var box = sign.Item().Height(18, Unit.Millimetre);
                         if (signature is not null)
                         {
-                            box.AlignCenter().AlignMiddle().Image(signature).FitArea();
+                            box.AlignLeft().AlignBottom().Image(signature).FitArea();
                         }
 
                         sign.Item().LineHorizontal(0.3f, Unit.Millimetre).LineColor(Navy);
-                        sign.Item().PaddingTop(1.5f, Unit.Millimetre).Text("Doctor's signature").FontSize(8).FontColor(Colors.Grey.Darken2);
+                        sign.Item().PaddingTop(1.2f, Unit.Millimetre).Text("Doctor's signature").FontSize(8).FontColor(Colors.Grey.Darken2);
                         sign.Item().Text(doctorName).Bold().FontSize(8).FontColor(Navy);
                     });
-                    row.ConstantItem(8, Unit.Millimetre);
-                    row.ConstantItem(28, Unit.Millimetre).Column(stamp =>
+                    row.RelativeItem();
+                    row.ConstantItem(32, Unit.Millimetre).AlignRight().Column(stamp =>
                     {
+                        var box = stamp.Item().AlignRight().Height(24, Unit.Millimetre);
                         if (seal is not null)
                         {
-                            stamp.Item().Height(28, Unit.Millimetre).AlignCenter().AlignMiddle().Image(seal).FitArea();
-                            stamp.Item().AlignCenter().Text("Stamp").FontSize(7).FontColor(Colors.Grey.Darken1);
+                            box.AlignRight().AlignBottom().Image(seal).FitArea();
                         }
-                    });
-                    row.RelativeItem();
-                    row.ConstantItem(36, Unit.Millimetre).Column(code =>
-                    {
-                        code.Item().AlignCenter().Width(28, Unit.Millimetre).Image(qr);
-                        code.Item().AlignCenter().Text("Scan to verify").FontSize(7).FontColor(Colors.Grey.Darken1);
+
+                        stamp.Item().AlignRight().Text("Seal").FontSize(7).FontColor(Colors.Grey.Darken1);
                     });
                 });
-            });
-
-            page.Footer().Column(footer =>
-            {
-                footer.Item().LineHorizontal(0.6f, Unit.Millimetre).LineColor(Mint);
-                footer.Item().PaddingTop(1.5f, Unit.Millimetre).AlignCenter()
-                    .Text("Issued by VersaLife Telemedicine. A pharmacist can confirm this prescription by scanning the code.")
-                    .FontSize(7).FontColor(Colors.Grey.Darken1);
-                footer.Item().AlignCenter().Text($"Prescription {p.Id}").FontSize(7).FontColor(Colors.Grey.Darken1);
+                footer.Item().LineHorizontal(0.4f, Unit.Millimetre).LineColor("#D2DCE6");
+                footer.Item().PaddingTop(3, Unit.Millimetre).Row(row =>
+                {
+                    row.RelativeItem().AlignMiddle().Column(copy =>
+                    {
+                        copy.Item().Text("I, the licensed medical practitioner above, confirm this is my intent, and authorise by this writing that the specified medicines are dispensed for use by the designated individual above-named.")
+                            .FontSize(6.5f).FontColor(Colors.Grey.Darken1);
+                        copy.Item().PaddingTop(1, Unit.Millimetre)
+                            .Text($"Issued by VersaLife Telemedicine. A pharmacist can confirm this prescription by scanning the code.  ·  {p.Id}")
+                            .FontSize(6.5f).FontColor(Colors.Grey.Darken1);
+                    });
+                    row.ConstantItem(22, Unit.Millimetre).AlignRight().AlignMiddle().Height(16, Unit.Millimetre).Image(Logo).FitArea();
+                });
             });
 
             if (p.IsTest)
@@ -114,7 +139,60 @@ internal sealed class QuestPrescriptionPdfRenderer(ILogger<QuestPrescriptionPdfR
         })).GeneratePdf();
     }
 
-    private static void PatientCard(ColumnDescriptor card, PrescriptionPdf p)
+    private static void Medication(IContainer container, PrescriptionPdfItem item, int index)
+    {
+        var title = string.Join(" ", new[] { item.DrugName, item.Strength, item.Form }.Where(s => !string.IsNullOrWhiteSpace(s)));
+        container.Row(row =>
+        {
+            row.ConstantItem(10, Unit.Millimetre).Text($"M{index}").Bold().FontSize(11).FontColor(Navy);
+            row.RelativeItem().Column(col =>
+            {
+                col.Item().Text(title).Bold().FontSize(11).FontColor(Colors.Grey.Darken4);
+                if (item.IsGeneric)
+                {
+                    col.Item().Text("Generic").Italic().FontSize(8).FontColor(Colors.Grey.Darken1);
+                }
+
+                col.Item().PaddingTop(1, Unit.Millimetre).Text("Take").FontSize(8).FontColor(Colors.Grey.Darken1);
+                foreach (var bullet in MedicationBullets(item))
+                {
+                    col.Item().Row(b =>
+                    {
+                        b.ConstantItem(4, Unit.Millimetre).Text("•").FontSize(9).FontColor(Navy);
+                        b.RelativeItem().Text(bullet).FontSize(9);
+                    });
+                }
+            });
+        });
+    }
+
+    private static IEnumerable<string> MedicationBullets(PrescriptionPdfItem item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.Dosage))
+        {
+            yield return item.Dosage.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.Frequency))
+        {
+            yield return item.Frequency.Trim();
+        }
+
+        yield return $"For {item.DurationDays} day{(item.DurationDays == 1 ? "" : "s")}";
+        yield return $"Quantity {item.Quantity.ToString(CultureInfo.InvariantCulture)}";
+
+        if (string.IsNullOrWhiteSpace(item.Instructions))
+        {
+            yield break;
+        }
+
+        foreach (var part in item.Instructions.Split(['\n', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            yield return part;
+        }
+    }
+
+    private static void PatientCard(ColumnDescriptor card, PrescriptionPdf p, string issued)
     {
         card.Item().Row(labels =>
         {
@@ -126,7 +204,7 @@ internal sealed class QuestPrescriptionPdfRenderer(ILogger<QuestPrescriptionPdfR
         {
             values.RelativeItem(3).Text(p.PatientName).Bold().FontSize(11);
             values.RelativeItem(1).Text(p.PatientAgeYears is { } age ? $"{age} years" : "-").FontSize(11);
-            values.RelativeItem(1).Text(TimeZoneInfo.ConvertTime(p.IssuedAt, Colombo).ToString("dd MMM yyyy", CultureInfo.InvariantCulture)).FontSize(11);
+            values.RelativeItem(1).Text(issued).FontSize(11);
         });
 
         if (p.PatientSex is not null || p.PatientWeightKg is not null)
@@ -149,49 +227,6 @@ internal sealed class QuestPrescriptionPdfRenderer(ILogger<QuestPrescriptionPdfR
             card.Item().Text(p.PatientAllergies.Trim());
         }
     }
-
-    private static void Items(IContainer container, IReadOnlyList<PrescriptionPdfItem> items) =>
-        container.Table(table =>
-        {
-            table.ColumnsDefinition(columns =>
-            {
-                columns.RelativeColumn(48);
-                columns.RelativeColumn(22);
-                columns.RelativeColumn(20);
-                columns.RelativeColumn(36);
-                columns.RelativeColumn(22);
-                columns.RelativeColumn(16);
-                columns.RelativeColumn(14);
-            });
-
-            table.Header(header =>
-            {
-                foreach (var title in new[] { "Medicine", "Strength", "Form", "Dosage / Frequency", "Duration", "Qty", "Generic" })
-                {
-                    header.Cell().Background(Navy).Padding(2, Unit.Millimetre).AlignCenter().Text(title).Bold().FontSize(7).FontColor(Colors.White);
-                }
-            });
-
-            for (var i = 0; i < items.Count; i++)
-            {
-                var item = items[i];
-                string background = i % 2 == 0 ? StripedRow : "#FFFFFF";
-                IContainer Cell() => table.Cell().Background(background).BorderBottom(0.5f).BorderColor("#D2DCE6").Padding(1.5f, Unit.Millimetre);
-
-                Cell().Text(item.DrugName).FontSize(9);
-                Cell().AlignCenter().Text(item.Strength).FontSize(9);
-                Cell().AlignCenter().Text(item.Form).FontSize(9);
-                Cell().Text($"{item.Dosage} / {item.Frequency}").FontSize(9);
-                Cell().AlignCenter().Text($"{item.DurationDays} days").FontSize(9);
-                Cell().AlignCenter().Text(item.Quantity.ToString(CultureInfo.InvariantCulture)).FontSize(9);
-                Cell().AlignCenter().Text(item.IsGeneric ? "Yes" : "").FontSize(9);
-                if (!string.IsNullOrWhiteSpace(item.Instructions))
-                {
-                    table.Cell().ColumnSpan(7).Background(background).PaddingHorizontal(4, Unit.Millimetre).PaddingBottom(1.5f, Unit.Millimetre)
-                        .Text(item.Instructions).Italic().FontSize(8).FontColor(Colors.Grey.Darken2);
-                }
-            }
-        });
 
     // A stamp that passed upload sniffing can still be corrupt; the prescription is rendered without it rather than not at all.
     private Image? Decode(byte[]? bytes, Guid prescriptionId, string kind)

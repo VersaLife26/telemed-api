@@ -81,6 +81,7 @@ public class PrescriptionSignatureTests
         { "id", p => Copy(p, id: Guid.NewGuid()) },
         { "doctor", p => Copy(p, doctorId: Guid.NewGuid()) },
         { "patient", p => Copy(p, patientId: Guid.NewGuid()) },
+        { "investigation", _ => Copy(Sample(), investigations: ["Full blood count"]) },
     };
 
     [Theory]
@@ -130,7 +131,12 @@ public class PrescriptionSignatureTests
         PrescriptionSignature.TruncateToMicroseconds(value).ShouldBe(value.AddTicks(-7));
     }
 
-    private static Prescription Copy(Prescription p, Guid? id = null, Guid? doctorId = null, Guid? patientId = null) => new()
+    private static Prescription Copy(
+        Prescription p,
+        Guid? id = null,
+        Guid? doctorId = null,
+        Guid? patientId = null,
+        IReadOnlyList<string>? investigations = null) => new()
     {
         Id = id ?? p.Id,
         DoctorId = doctorId ?? p.DoctorId,
@@ -139,5 +145,6 @@ public class PrescriptionSignatureTests
         DoctorSlmc = p.DoctorSlmc,
         IssuedAt = p.IssuedAt,
         Items = p.Items,
+        Investigations = investigations is null ? p.Investigations : [.. investigations],
     };
 }

@@ -108,6 +108,10 @@ public sealed class PrescriptionService(
                     SortOrder = i,
                 };
             }).ToList(),
+            Investigations = (request.Investigations ?? [])
+                .Select(line => line.Trim())
+                .Where(line => line.Length > 0)
+                .ToList(),
         };
         prescription.VerificationHmac = signer.Sign(prescription);
         prescriptions.Add(prescription);
@@ -165,6 +169,7 @@ public sealed class PrescriptionService(
             prescription.Items.OrderBy(i => i.SortOrder)
                 .Select(i => new PrescriptionPdfItem(i.DrugName, i.Strength, i.Form, i.Dosage, i.Frequency, i.DurationDays, i.Quantity, i.Instructions, i.IsGeneric))
                 .ToList(),
+            prescription.Investigations,
             await StampAsync(prescription.DoctorId, DoctorDocumentType.Signature, ct),
             await StampAsync(prescription.DoctorId, DoctorDocumentType.Seal, ct),
             signer.VerifyUrl(prescription.Id, prescription.VerificationHmac),
@@ -222,7 +227,8 @@ public sealed class PrescriptionService(
             prescription.DoctorName,
             prescription.DoctorSlmc,
             Initials(appointment?.VisitPatientName),
-            prescription.Items.OrderBy(i => i.SortOrder).Select(i => i.ToVerifiedDto()).ToList());
+            prescription.Items.OrderBy(i => i.SortOrder).Select(i => i.ToVerifiedDto()).ToList(),
+            prescription.Investigations);
     }
 
     private async Task<byte[]?> StampAsync(Guid doctorId, DoctorDocumentType type, CancellationToken ct)
