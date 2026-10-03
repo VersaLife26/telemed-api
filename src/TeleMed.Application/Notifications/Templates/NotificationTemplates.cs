@@ -168,11 +168,11 @@ public static class NotificationTemplates
             Email: new Dictionary<Language, EmailText>
             {
                 [Language.En] = new("Your prescription is ready",
-                    "Your prescription from Dr. {DoctorName} is ready.\n\nDownload prescription: {DownloadUrl}"),
+                    "Your prescription from Dr. {DoctorName} is ready. The PDF is attached to this email.\n\nView or download it in VersaLife: {DownloadUrl}"),
                 [Language.Si] = new("ඔබගේ බෙහෙත් වට්ටෝරුව සූදානම්",
-                    "ඔබගේ වෛද්‍ය {DoctorName} විසින් නිකුත් කළ බෙහෙත් වට්ටෝරුව සූදානම්.\n\nබෙහෙත් වට්ටෝරුව බාගත කරන්න: {DownloadUrl}"),
+                    "ඔබගේ වෛද්‍ය {DoctorName} විසින් නිකුත් කළ බෙහෙත් වට්ටෝරුව සූදානම්. PDF එක මෙම ඊමේල් සමඟ අමුණා ඇත.\n\nVersaLife හි බලන්න හෝ බාගත කරන්න: {DownloadUrl}"),
                 [Language.Ta] = new("உங்கள் மருந்துச் சீட்டு தயார்",
-                    "மருத்துவர் {DoctorName} வழங்கிய உங்கள் மருந்துச் சீட்டு தயார்.\n\nமருந்துச் சீட்டைப் பதிவிறக்கவும்: {DownloadUrl}"),
+                    "மருத்துவர் {DoctorName} வழங்கிய உங்கள் மருந்துச் சீட்டு தயார். PDF இந்த மின்னஞ்சலுடன் இணைக்கப்பட்டுள்ளது.\n\nVersaLife-இல் பார்க்கவும் அல்லது பதிவிறக்கவும்: {DownloadUrl}"),
             },
             Sms: new Dictionary<Language, string>
             {

@@ -118,8 +118,13 @@ public sealed class PrescriptionService(
 
         if (!appointment.IsTest)
         {
+            var pdf = await RenderPdfCoreAsync(prescription, appointment, ct);
             await notifications.EnqueueAsync(
-                appointment.PatientId, new PrescriptionReadyModel(doctor.DisplayName, links.Prescription(id)), $"rx:{id}:ready", ct);
+                appointment.PatientId,
+                new PrescriptionReadyModel(doctor.DisplayName, links.Prescription(id)),
+                $"rx:{id}:ready",
+                ct,
+                new EmailAttachment(pdf.FileName, pdf.Content));
         }
 
         await unitOfWork.SaveChangesAsync(ct);
@@ -154,6 +159,11 @@ public sealed class PrescriptionService(
         await policy.AuthorizeAsync(Access(prescription, RecordAccessAction.Download), ct);
 
         var appointment = await appointments.FindAsync(prescription.AppointmentId, ct) ?? throw NotFound();
+        return await RenderPdfCoreAsync(prescription, appointment, ct);
+    }
+
+    private async Task<PrescriptionPdfFile> RenderPdfCoreAsync(Prescription prescription, Appointment appointment, CancellationToken ct)
+    {
         var issuedOn = SlotPlanner.LocalDate(prescription.IssuedAt, IanaTimeZone.Find(PlatformPolicy.TimeZoneId));
         var pdf = new PrescriptionPdf(
             prescription.Id,

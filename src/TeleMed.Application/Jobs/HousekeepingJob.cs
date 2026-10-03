@@ -32,6 +32,8 @@ public sealed class HousekeepingJob(
                 foreach (var notification in batch)
                 {
                     notification.Body = null;
+                    notification.AttachmentContent = null;
+                    notification.AttachmentFileName = null;
                 }
             },
             ct);

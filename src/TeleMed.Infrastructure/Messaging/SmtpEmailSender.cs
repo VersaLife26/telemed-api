@@ -10,7 +10,7 @@ internal sealed class SmtpEmailSender(IOptions<EmailOptions> email, IOptions<App
 {
     public bool IsEnabled => true;
 
-    public async Task SendAsync(string to, string subject, string body, CancellationToken ct)
+    public async Task SendAsync(string to, string subject, string body, CancellationToken ct, IReadOnlyList<EmailAttachment>? attachments = null)
     {
         var o = email.Value;
         var (_, html) = BrandedEmailBody.Format(email, links, subject, body);
@@ -18,11 +18,32 @@ internal sealed class SmtpEmailSender(IOptions<EmailOptions> email, IOptions<App
         message.From.Add(new MailboxAddress(o.FromName, o.FromAddress));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
-        message.Body = new MultipartAlternative
+        var alternative = new MultipartAlternative
         {
             new TextPart("plain") { Text = body },
             new TextPart("html") { Text = html },
         };
+        if (attachments is { Count: > 0 })
+        {
+            var mixed = new Multipart("mixed") { alternative };
+            foreach (var file in attachments)
+            {
+                var part = new MimePart(file.ContentType)
+                {
+                    Content = new MimeContent(new MemoryStream(file.Content)),
+                    ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                    ContentTransferEncoding = ContentEncoding.Base64,
+                    FileName = file.FileName,
+                };
+                mixed.Add(part);
+            }
+
+            message.Body = mixed;
+        }
+        else
+        {
+            message.Body = alternative;
+        }
 
         using var client = new SmtpClient();
         await client.ConnectAsync(o.Smtp.Host, o.Smtp.Port, o.Smtp.Security, ct);

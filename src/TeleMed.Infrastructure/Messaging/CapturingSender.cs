@@ -13,7 +13,7 @@ internal sealed class CapturingSender(IServiceScopeFactory scopes) : ISmsSender,
     public Task SendAsync(string phoneNumber, string message, CancellationToken ct) =>
         CaptureAsync(MessageChannel.Sms, phoneNumber, null, message, ct);
 
-    public Task SendAsync(string to, string subject, string body, CancellationToken ct) =>
+    public Task SendAsync(string to, string subject, string body, CancellationToken ct, IReadOnlyList<EmailAttachment>? attachments = null) =>
         CaptureAsync(MessageChannel.Email, to, subject, body, ct);
 
     // A separate scope keeps the capture write independent of whatever the caller has staged.

@@ -9,6 +9,6 @@ internal sealed class DisabledSender : ISmsSender, IEmailSender
     public Task SendAsync(string phoneNumber, string message, CancellationToken ct) =>
         throw new InvalidOperationException("SMS is disabled (Sms:Provider=None).");
 
-    public Task SendAsync(string to, string subject, string body, CancellationToken ct) =>
+    public Task SendAsync(string to, string subject, string body, CancellationToken ct, IReadOnlyList<EmailAttachment>? attachments = null) =>
         throw new InvalidOperationException("Email is disabled (Email:Provider=None).");
 }

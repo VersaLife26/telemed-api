@@ -66,7 +66,10 @@ public sealed partial class NotificationDispatcherJob(
         {
             if (notification.Channel == MessageChannel.Email)
             {
-                await email.SendAsync(notification.Recipient, notification.Subject ?? "", notification.Body, ct);
+                IReadOnlyList<EmailAttachment>? attachments = notification.AttachmentContent is { Length: > 0 } bytes
+                    ? [new EmailAttachment(notification.AttachmentFileName ?? "attachment.pdf", bytes)]
+                    : null;
+                await email.SendAsync(notification.Recipient, notification.Subject ?? "", notification.Body, ct, attachments);
             }
             else
             {

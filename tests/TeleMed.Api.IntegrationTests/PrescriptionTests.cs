@@ -26,6 +26,9 @@ public class PrescriptionTests(ApiFixture fixture) : IntegrationTest(fixture)
         issued.Items.Select(i => (i.DrugName, i.SortOrder)).ShouldBe([("Amoxicillin", 0), ("Paracetamol", 1)]);
         (await Fixture.ScalarAsync<long>($"SELECT count(*) FROM notifications WHERE template_key = 'prescription_ready' AND user_id = '{patient.UserId}'"))
             .ShouldBeGreaterThan(0);
+        (await Fixture.ScalarAsync<long>(
+                $"SELECT octet_length(attachment_content) FROM notifications WHERE template_key = 'prescription_ready' AND user_id = '{patient.UserId}' AND channel = 'email'"))
+            .ShouldBeGreaterThan(100);
 
         (await (await patient.Client.GetAsync($"/api/v1/appointments/{appointmentId}/prescription", Ct)).ReadAsync<PrescriptionDto>()).Id.ShouldBe(issued.Id);
         (await (await patient.Client.GetAsync("/api/v1/prescriptions", Ct)).ReadAsync<PagedResult<PrescriptionDto>>()).Items.ShouldHaveSingleItem();

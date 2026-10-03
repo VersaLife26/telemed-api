@@ -336,7 +336,7 @@ public class NotificationTests(ApiFixture fixture) : IntegrationTest(fixture)
     {
         public bool IsEnabled => true;
 
-        public Task SendAsync(string to, string subject, string body, CancellationToken ct) =>
+        public Task SendAsync(string to, string subject, string body, CancellationToken ct, IReadOnlyList<EmailAttachment>? attachments = null) =>
             throw new InvalidOperationException($"SMTP 550 mailbox {to} unavailable, call +94 77 123 4567");
     }
 }

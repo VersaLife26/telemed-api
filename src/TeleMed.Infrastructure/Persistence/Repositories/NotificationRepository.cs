@@ -29,7 +29,7 @@ internal sealed class NotificationRepository(AppDbContext db) : INotificationRep
 
     public async Task<IReadOnlyList<Notification>> ListSentWithBodyBeforeAsync(DateTimeOffset cutoff, int limit, CancellationToken ct) =>
         await db.Notifications
-            .Where(n => n.Status == NotificationStatus.Sent && n.SentAt < cutoff && n.Body != null)
+            .Where(n => n.Status == NotificationStatus.Sent && n.SentAt < cutoff && (n.Body != null || n.AttachmentContent != null))
             .OrderBy(n => n.Id)
             .Take(limit)
             .ToListAsync(ct);
