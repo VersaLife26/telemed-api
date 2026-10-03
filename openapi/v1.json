@@ -18524,7 +18524,8 @@
       },
       "IssuePrescriptionRequest": {
         "required": [
-          "items"
+          "items",
+          "investigations"
         ],
         "type": "object",
         "properties": {
@@ -20555,7 +20556,8 @@
           "doctorName",
           "doctorSlmc",
           "patientInitials",
-          "items"
+          "items",
+          "investigations"
         ],
         "type": "object",
         "properties": {
