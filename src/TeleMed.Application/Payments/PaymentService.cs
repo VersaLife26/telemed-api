@@ -122,6 +122,13 @@ public sealed class PaymentService(
             redemption.ExpiresAt = appointment.PaymentDueAt.Value;
         }
 
+        if (!provider.CanCharge(payment.Currency))
+        {
+            throw new BadRequestException("provider_unavailable", payment.Currency == ForeignPricing.Currency
+                ? "International card payments are not available right now."
+                : "This payment provider is not available.");
+        }
+
         var intent = provider.CreateIntent(new PaymentIntentRequest(
             payment.Id,
             payment.AmountCents,

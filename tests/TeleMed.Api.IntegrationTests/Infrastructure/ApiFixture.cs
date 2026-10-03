@@ -1,6 +1,7 @@
 using Npgsql;
 using Respawn;
 using Respawn.Graph;
+using TeleMed.Infrastructure.Persistence.Configurations;
 using TeleMed.Infrastructure.Persistence.Seed;
 using Testcontainers.PostgreSql;
 
@@ -42,6 +43,8 @@ public sealed class ApiFixture : IAsyncLifetime
         command.CommandText = string.Join('\n',
             SeedSql.Read("specialties.sql"),
             SeedSql.Read("drugs.sql"),
+            // Respawn truncates the singleton. Each test starts with no exchange rate.
+            $"INSERT INTO platform_billing_settings (id, lkr_per_usd, created_at, updated_at) VALUES ('{PlatformBillingSettingsConfiguration.SingletonId}', NULL, TIMESTAMPTZ '2026-10-03 00:00:00+00', TIMESTAMPTZ '2026-10-03 00:00:00+00');",
             "ALTER TABLE audit_logs DISABLE TRIGGER USER;",
             "TRUNCATE audit_logs RESTART IDENTITY;",
             "ALTER TABLE audit_logs ENABLE TRIGGER USER;",

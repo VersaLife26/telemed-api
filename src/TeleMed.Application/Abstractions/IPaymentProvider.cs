@@ -7,6 +7,9 @@ public interface IPaymentProvider
     PaymentProvider Provider { get; }
     bool IsEnabled { get; }
 
+    // PayHere charges LKR on the domestic merchant and USD on the international merchant.
+    bool CanCharge(string currency);
+
     // Local only (no network): PayHere signs a hosted-checkout form and the mock hands back an id.
     PaymentIntent CreateIntent(PaymentIntentRequest request);
 

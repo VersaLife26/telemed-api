@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -14,9 +15,11 @@ using TeleMed.Infrastructure.Persistence;
 namespace TeleMed.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261003101913_InternationalPatientPricing")]
+    partial class InternationalPatientPricing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,7 +163,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
 
                     b.ToTable("admin_notifications", null, t =>
                         {
-                            t.HasCheckConstraint("CK_admin_notifications_kind_Enum", "kind IN ('doctor_application_submitted', 'doctor_no_show', 'refund_manual_required', 'payment_capture_failed', 'customer_care')");
+                            t.HasCheckConstraint("CK_admin_notifications_kind_Enum", "kind IN ('doctor_application_submitted', 'doctor_no_show', 'refund_manual_required', 'payment_capture_failed')");
                         });
                 });
 
@@ -932,18 +935,13 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("AppointmentId")
+                    b.Property<Guid>("AppointmentId")
                         .HasColumnType("uuid")
                         .HasColumnName("appointment_id");
 
                     b.Property<Guid?>("AssignedAdminId")
                         .HasColumnType("uuid")
                         .HasColumnName("assigned_admin_id");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("category");
 
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone")
@@ -959,19 +957,15 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("description");
 
-                    b.Property<Guid?>("DoctorId")
+                    b.Property<Guid>("DoctorId")
                         .HasColumnType("uuid")
                         .HasColumnName("doctor_id");
 
-                    b.Property<Guid?>("OpenedByAdminId")
+                    b.Property<Guid>("OpenedByAdminId")
                         .HasColumnType("uuid")
                         .HasColumnName("opened_by_admin_id");
 
-                    b.Property<Guid?>("OpenedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("opened_by_user_id");
-
-                    b.Property<Guid?>("PatientId")
+                    b.Property<Guid>("PatientId")
                         .HasColumnType("uuid")
                         .HasColumnName("patient_id");
 
@@ -1024,9 +1018,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                     b.HasIndex("OpenedByAdminId")
                         .HasDatabaseName("ix_disputes_opened_by_admin_id");
 
-                    b.HasIndex("OpenedByUserId")
-                        .HasDatabaseName("ix_disputes_opened_by_user_id");
-
                     b.HasIndex("PatientId")
                         .HasDatabaseName("ix_disputes_patient_id");
 
@@ -1038,13 +1029,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
 
                     b.ToTable("disputes", null, t =>
                         {
-                            t.HasCheckConstraint("CK_disputes_category_Enum", "category IN ('refund', 'appointment', 'consultation', 'prescription', 'account', 'technical')");
-
                             t.HasCheckConstraint("CK_disputes_status_Enum", "status IN ('open', 'investigating', 'resolved', 'closed')");
-
-                            t.HasCheckConstraint("ck_disputes_opener", "(opened_by_admin_id IS NULL) <> (opened_by_user_id IS NULL)");
-
-                            t.HasCheckConstraint("ck_disputes_party", "patient_id IS NOT NULL OR doctor_id IS NOT NULL");
                         });
                 });
 
@@ -1055,13 +1040,9 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("AuthorAdminId")
+                    b.Property<Guid>("AuthorAdminId")
                         .HasColumnType("uuid")
                         .HasColumnName("author_admin_id");
-
-                    b.Property<Guid?>("AuthorUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("author_user_id");
 
                     b.Property<string>("Body")
                         .IsRequired()
@@ -1087,16 +1068,10 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                     b.HasIndex("AuthorAdminId")
                         .HasDatabaseName("ix_dispute_comments_author_admin_id");
 
-                    b.HasIndex("AuthorUserId")
-                        .HasDatabaseName("ix_dispute_comments_author_user_id");
-
                     b.HasIndex("DisputeId", "CreatedAt")
                         .HasDatabaseName("ix_dispute_comments_dispute_id_created_at");
 
-                    b.ToTable("dispute_comments", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_dispute_comments_author", "(author_admin_id IS NULL) <> (author_user_id IS NULL)");
-                        });
+                    b.ToTable("dispute_comments", (string)null);
                 });
 
             modelBuilder.Entity("TeleMed.Domain.Entities.Doctor", b =>
@@ -1156,10 +1131,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(5)
                         .HasColumnName("buffer_minutes");
-
-                    b.Property<int?>("CommissionBps")
-                        .HasColumnType("integer")
-                        .HasColumnName("commission_bps");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1323,8 +1294,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                     b.ToTable("doctors", null, t =>
                         {
                             t.HasCheckConstraint("CK_doctors_status_Enum", "status IN ('active', 'suspended')");
-
-                            t.HasCheckConstraint("ck_doctors_commission_bps", "commission_bps IS NULL OR (commission_bps BETWEEN 0 AND 9700)");
 
                             t.HasCheckConstraint("ck_doctors_experience_years", "experience_years >= 0");
 
@@ -1808,168 +1777,12 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                     b.ToTable("icd10_codes", (string)null);
                 });
 
-            modelBuilder.Entity("TeleMed.Domain.Entities.MedicalReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Addressee")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("addressee");
-
-                    b.Property<string>("Advice")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("advice");
-
-                    b.Property<Guid>("AppointmentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("appointment_id");
-
-                    b.Property<string>("CancellationReason")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("cancellation_reason");
-
-                    b.Property<DateTimeOffset?>("CancelledAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("cancelled_at");
-
-                    b.Property<string>("ClinicalImpression")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("clinical_impression");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("DoctorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("doctor_id");
-
-                    b.Property<string>("DoctorName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("doctor_name");
-
-                    b.Property<string>("DoctorQualifications")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("doctor_qualifications");
-
-                    b.Property<string>("DoctorSlmc")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("doctor_slmc");
-
-                    b.Property<string>("Findings")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
-                        .HasColumnName("findings");
-
-                    b.Property<string>("Fitness")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("fitness");
-
-                    b.Property<string>("FitnessNotes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("fitness_notes");
-
-                    b.Property<bool>("IsTest")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_test");
-
-                    b.Property<DateTimeOffset>("IssuedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("issued_at");
-
-                    b.Property<DateOnly?>("LeaveFrom")
-                        .HasColumnType("date")
-                        .HasColumnName("leave_from");
-
-                    b.Property<DateOnly?>("LeaveUntil")
-                        .HasColumnType("date")
-                        .HasColumnName("leave_until");
-
-                    b.Property<Guid>("PatientId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("patient_id");
-
-                    b.Property<DateOnly?>("ReturnToWorkOn")
-                        .HasColumnType("date")
-                        .HasColumnName("return_to_work_on");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<string>("VerificationHmac")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character(64)")
-                        .HasColumnName("verification_hmac")
-                        .IsFixedLength();
-
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
-                    b.HasKey("Id")
-                        .HasName("pk_medical_reports");
-
-                    b.HasIndex("AppointmentId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_medical_reports_appointment_id");
-
-                    b.HasIndex("DoctorId", "IssuedAt")
-                        .HasDatabaseName("ix_medical_reports_doctor_id_issued_at");
-
-                    b.HasIndex("PatientId", "IssuedAt")
-                        .HasDatabaseName("ix_medical_reports_patient_id_issued_at");
-
-                    b.ToTable("medical_reports", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_medical_reports_fitness_Enum", "fitness IN ('not_assessed', 'fit', 'unfit', 'restricted')");
-
-                            t.HasCheckConstraint("CK_medical_reports_status_Enum", "status IN ('issued', 'cancelled')");
-
-                            t.HasCheckConstraint("ck_medical_reports_cancelled", "(status = 'cancelled') = (cancelled_at IS NOT NULL)");
-                        });
-                });
-
             modelBuilder.Entity("TeleMed.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
-
-                    b.Property<byte[]>("AttachmentContent")
-                        .HasColumnType("bytea")
-                        .HasColumnName("attachment_content");
-
-                    b.Property<string>("AttachmentFileName")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("attachment_file_name");
 
                     b.Property<int>("Attempts")
                         .HasColumnType("integer")
@@ -2122,59 +1935,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("CK_otp_challenges_channel_Enum", "channel IN ('email', 'sms')");
                         });
-                });
-
-            modelBuilder.Entity("TeleMed.Domain.Entities.PasswordResetToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset?>("ConsumedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("consumed_at");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("email");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("token_hash");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_password_reset_tokens");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique()
-                        .HasDatabaseName("ix_password_reset_tokens_token_hash");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_password_reset_tokens_user_id");
-
-                    b.HasIndex("Email", "CreatedAt")
-                        .HasDatabaseName("ix_password_reset_tokens_email_created_at");
-
-                    b.ToTable("password_reset_tokens", (string)null);
                 });
 
             modelBuilder.Entity("TeleMed.Domain.Entities.Payment", b =>
@@ -2510,7 +2270,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                     b.HasIndex("MarkedByAdminId")
                         .HasDatabaseName("ix_payouts_marked_by_admin_id");
 
-                    b.HasIndex("DoctorId", "Period", "Currency")
+                    b.HasIndex("DoctorId", "Period")
                         .IsUnique()
                         .HasDatabaseName("ux_payouts_doctor_id_period");
 
@@ -2688,34 +2448,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("TeleMed.Domain.Entities.PlatformCommissionPolicy", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<int>("DefaultCommissionBps")
-                        .HasColumnType("integer")
-                        .HasColumnName("default_commission_bps");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_platform_commission_policies");
-
-                    b.ToTable("platform_commission_policies", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_platform_commission_policies_bps", "default_commission_bps BETWEEN 0 AND 9700");
-                        });
-                });
-
             modelBuilder.Entity("TeleMed.Domain.Entities.Prescription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2761,11 +2493,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("doctor_slmc");
-
-                    b.Property<string>("Investigations")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("investigations");
 
                     b.Property<bool>("IsTest")
                         .HasColumnType("boolean")
@@ -3183,7 +2910,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_record_access_logs_actor_role_Enum", "actor_role IN ('patient', 'doctor', 'admin', 'anonymous')");
 
-                            t.HasCheckConstraint("CK_record_access_logs_resource_type_Enum", "resource_type IN ('vault_document', 'prescription', 'clinical_note', 'doctor_document', 'medical_report')");
+                            t.HasCheckConstraint("CK_record_access_logs_resource_type_Enum", "resource_type IN ('vault_document', 'prescription', 'clinical_note', 'doctor_document')");
                         });
                 });
 
@@ -3362,7 +3089,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
 
                     b.ToTable("refunds", null, t =>
                         {
-                            t.HasCheckConstraint("CK_refunds_reason_Enum", "reason IN ('patient_cancellation', 'doctor_cancellation', 'admin_cancellation', 'system_cancellation', 'late_payment', 'reschedule_declined', 'doctor_no_show', 'patient_no_show', 'admin_request', 'dispute')");
+                            t.HasCheckConstraint("CK_refunds_reason_Enum", "reason IN ('patient_cancellation', 'doctor_cancellation', 'admin_cancellation', 'system_cancellation', 'late_payment', 'reschedule_declined', 'doctor_no_show', 'admin_request', 'dispute')");
 
                             t.HasCheckConstraint("CK_refunds_status_Enum", "status IN ('requested', 'approved', 'processing', 'succeeded', 'failed', 'manual_required', 'rejected')");
 
@@ -3927,77 +3654,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("TeleMed.Domain.Entities.WaitingRoomItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Body")
-                        .HasMaxLength(20000)
-                        .HasColumnType("character varying(20000)")
-                        .HasColumnName("body");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("display_order");
-
-                    b.Property<string>("ImageStorageKey")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("image_storage_key");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("kind");
-
-                    b.Property<string>("LinkUrl")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("link_url");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("title");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<string>("VideoStorageKey")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("video_storage_key");
-
-                    b.Property<string>("VideoUrl")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("video_url");
-
-                    b.HasKey("Id")
-                        .HasName("pk_waiting_room_items");
-
-                    b.HasIndex("DisplayOrder")
-                        .HasDatabaseName("ix_waiting_room_items_display_order");
-
-                    b.ToTable("waiting_room_items", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_waiting_room_items_kind_Enum", "kind IN ('article', 'ad')");
-                        });
-                });
-
             modelBuilder.Entity("TeleMed.Domain.Entities.WorkingHour", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4201,6 +3857,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_disputes_appointments_appointment_id");
 
                     b.HasOne("TeleMed.Domain.Entities.AdminUser", null)
@@ -4213,24 +3870,21 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("DoctorId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_disputes_doctors_doctor_id");
 
                     b.HasOne("TeleMed.Domain.Entities.AdminUser", null)
                         .WithMany()
                         .HasForeignKey("OpenedByAdminId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_disputes_admin_users_opened_by_admin_id");
-
-                    b.HasOne("TeleMed.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("OpenedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_disputes_users_opened_by_user_id");
 
                     b.HasOne("TeleMed.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_disputes_users_patient_id");
 
                     b.HasOne("TeleMed.Domain.Entities.AdminUser", null)
@@ -4246,13 +3900,8 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("AuthorAdminId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_dispute_comments_admin_users_author_admin_id");
-
-                    b.HasOne("TeleMed.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("AuthorUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_dispute_comments_users_author_user_id");
 
                     b.HasOne("TeleMed.Domain.Entities.Dispute", null)
                         .WithMany()
@@ -4337,30 +3986,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_holidays_doctors_doctor_id");
                 });
 
-            modelBuilder.Entity("TeleMed.Domain.Entities.MedicalReport", b =>
-                {
-                    b.HasOne("TeleMed.Domain.Entities.Appointment", null)
-                        .WithOne()
-                        .HasForeignKey("TeleMed.Domain.Entities.MedicalReport", "AppointmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_medical_reports_appointments_appointment_id");
-
-                    b.HasOne("TeleMed.Domain.Entities.Doctor", null)
-                        .WithMany()
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_medical_reports_doctors_doctor_id");
-
-                    b.HasOne("TeleMed.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_medical_reports_users_patient_id");
-                });
-
             modelBuilder.Entity("TeleMed.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("TeleMed.Domain.Entities.User", null)
@@ -4368,15 +3993,6 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_notifications_users_user_id");
-                });
-
-            modelBuilder.Entity("TeleMed.Domain.Entities.PasswordResetToken", b =>
-                {
-                    b.HasOne("TeleMed.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_password_reset_tokens_users_user_id");
                 });
 
             modelBuilder.Entity("TeleMed.Domain.Entities.Payment", b =>

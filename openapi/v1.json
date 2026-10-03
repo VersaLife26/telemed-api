@@ -1157,6 +1157,27 @@
         "security": []
       }
     },
+    "/api/v1/auth/registration-context": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_RegistrationContext",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationContextDto"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
     "/api/v1/auth/register/email": {
       "post": {
         "tags": [
@@ -11105,6 +11126,105 @@
         ]
       }
     },
+    "/api/v1/admin/doctors/{id}/foreign-multiplier": {
+      "put": {
+        "tags": [
+          "AdminDoctors"
+        ],
+        "operationId": "AdminDoctors_SetForeignMultiplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetForeignMultiplierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDoctorDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/drugs": {
       "get": {
         "tags": [
@@ -11874,6 +11994,130 @@
           },
           "404": {
             "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/finance/billing": {
+      "get": {
+        "tags": [
+          "AdminFinance"
+        ],
+        "operationId": "AdminFinance_Billing",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSettingsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "AdminFinance"
+        ],
+        "operationId": "AdminFinance_UpdateBilling",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBillingSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSettingsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -16393,6 +16637,26 @@
           "currency": {
             "type": "string"
           },
+          "foreignMultiplier": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "foreignFeeCents": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "foreignCurrency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "acceptsNewPatients": {
             "type": "boolean"
           },
@@ -16465,6 +16729,7 @@
           "email",
           "feeCents",
           "commissionBps",
+          "foreignMultiplier",
           "createdAt"
         ],
         "type": "object",
@@ -16507,6 +16772,13 @@
               "integer"
             ],
             "format": "int32"
+          },
+          "foreignMultiplier": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           },
           "createdAt": {
             "type": "string",
@@ -17380,6 +17652,21 @@
           },
           "accountName": {
             "type": "string"
+          }
+        }
+      },
+      "BillingSettingsDto": {
+        "required": [
+          "lkrPerUsd"
+        ],
+        "type": "object",
+        "properties": {
+          "lkrPerUsd": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -19591,6 +19878,18 @@
         "properties": {
           "idToken": {
             "type": "string"
+          },
+          "isSriLankanCitizen": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "nationalId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -20379,6 +20678,9 @@
           "hasPassword": {
             "type": "boolean"
           },
+          "isSriLankanCitizen": {
+            "type": "boolean"
+          },
           "version": {
             "type": "string"
           }
@@ -20597,6 +20899,18 @@
               {
                 "$ref": "#/components/schemas/Language"
               }
+            ]
+          },
+          "isSriLankanCitizen": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "nationalId": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         }
@@ -21705,6 +22019,10 @@
           "erasureDueAt",
           "anonymizedAt",
           "doctorId",
+          "isSriLankanCitizen",
+          "hasNationalId",
+          "registrationCountry",
+          "foreignMultiplier",
           "createdAt"
         ],
         "type": "object",
@@ -21797,6 +22115,25 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "isSriLankanCitizen": {
+            "type": "boolean"
+          },
+          "hasNationalId": {
+            "type": "boolean"
+          },
+          "registrationCountry": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "foreignMultiplier": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           },
           "createdAt": {
             "type": "string",
@@ -22371,6 +22708,19 @@
           "currency": {
             "type": "string"
           },
+          "foreignFeeCents": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "foreignCurrency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "acceptsNewPatients": {
             "type": "boolean"
           },
@@ -22614,6 +22964,36 @@
                 "$ref": "#/components/schemas/Language"
               }
             ]
+          },
+          "isSriLankanCitizen": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "nationalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RegistrationContextDto": {
+        "required": [
+          "countryCode",
+          "askCitizenship"
+        ],
+        "type": "object",
+        "properties": {
+          "countryCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "askCitizenship": {
+            "type": "boolean"
           }
         }
       },
@@ -23076,6 +23456,18 @@
           }
         }
       },
+      "SetForeignMultiplierRequest": {
+        "required": [
+          "multiplier"
+        ],
+        "type": "object",
+        "properties": {
+          "multiplier": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "Sex": {
         "enum": [
           "female",
@@ -23301,6 +23693,18 @@
               "null",
               "boolean"
             ]
+          }
+        }
+      },
+      "UpdateBillingSettingsRequest": {
+        "required": [
+          "lkrPerUsd"
+        ],
+        "type": "object",
+        "properties": {
+          "lkrPerUsd": {
+            "type": "number",
+            "format": "double"
           }
         }
       },

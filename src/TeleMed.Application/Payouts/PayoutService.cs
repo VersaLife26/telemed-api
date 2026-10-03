@@ -64,13 +64,19 @@ public sealed class PayoutService(
 
         // A payment returning from a failed payout has its refunded share both in RefundedPayoutCents and in adjustments,
         // so the clawed-back part is added back here rather than deducted twice. A doctor whose adjustments outweigh the payable amount is skipped; both carry to a later run.
+        // LKR and USD are separate payouts. An adjustment applies only to the payout in its own currency.
         var planned = payable
-            .GroupBy(p => p.DoctorId)
-            .Select(g => (
-                DoctorId: g.Key,
-                Payments: g.ToList(),
-                Adjustments: adjustments[g.Key].ToList(),
-                Amount: g.Sum(p => p.PayoutCents - p.RefundedPayoutCents + clawedBack.GetValueOrDefault(p.Id)) + adjustments[g.Key].Sum(a => a.AmountCents)))
+            .GroupBy(p => (p.DoctorId, p.Currency))
+            .Select(g =>
+            {
+                var matched = adjustments[g.Key.DoctorId].Where(a => a.Currency == g.Key.Currency).ToList();
+                return (
+                    DoctorId: g.Key.DoctorId,
+                    Currency: g.Key.Currency,
+                    Payments: g.ToList(),
+                    Adjustments: matched,
+                    Amount: g.Sum(p => p.PayoutCents - p.RefundedPayoutCents + clawedBack.GetValueOrDefault(p.Id)) + matched.Sum(a => a.AmountCents));
+            })
             .Where(x => x.Amount > 0)
             .ToList();
         if (planned.Count == 0)
@@ -85,7 +91,7 @@ public sealed class PayoutService(
             CreatedByAdminId = adminId,
         };
         payouts.AddBatch(batch);
-        foreach (var (doctorId, payments, doctorAdjustments, amount) in planned)
+        foreach (var (doctorId, currency, payments, doctorAdjustments, amount) in planned)
         {
             var payout = new Payout
             {
@@ -94,7 +100,7 @@ public sealed class PayoutService(
                 Period = period,
                 AmountCents = amount,
                 PaymentCount = payments.Count,
-                Currency = payments[0].Currency,
+                Currency = currency,
             };
             payouts.Add(payout);
             foreach (var payment in payments)

@@ -21,5 +21,7 @@ internal static partial class AdminDoctorMapper
     [MapperIgnoreTarget(nameof(AdminDoctorDto.Email))]
     [MapperIgnoreTarget(nameof(AdminDoctorDto.PhotoUrl))]
     [MapperIgnoreTarget(nameof(AdminDoctorDto.Documents))]
+    [MapperIgnoreTarget(nameof(AdminDoctorDto.ForeignFeeCents))]
+    [MapperIgnoreTarget(nameof(AdminDoctorDto.ForeignCurrency))]
     private static partial AdminDoctorDto Map(this Doctor doctor);
 }

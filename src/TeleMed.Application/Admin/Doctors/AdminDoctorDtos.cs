@@ -20,6 +20,7 @@ public sealed record AdminDoctorListItemDto(
     string? Email,
     long FeeCents,
     int? CommissionBps,
+    decimal? ForeignMultiplier,
     DateTimeOffset CreatedAt);
 
 public sealed record AdminDoctorDto
@@ -41,6 +42,9 @@ public sealed record AdminDoctorDto
     public long FeeCents { get; init; }
     public int? CommissionBps { get; init; }
     public string Currency { get; init; } = "";
+    public decimal? ForeignMultiplier { get; init; }
+    public long? ForeignFeeCents { get; init; }
+    public string? ForeignCurrency { get; init; }
     public bool AcceptsNewPatients { get; init; }
     public string BankName { get; init; } = "";
     public string BankBranch { get; init; } = "";
@@ -57,3 +61,5 @@ public sealed record AdminDoctorDto
 }
 
 public sealed record SuspendDoctorRequest(string Reason);
+
+public sealed record SetForeignMultiplierRequest(decimal Multiplier);

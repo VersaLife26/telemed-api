@@ -96,7 +96,15 @@ public static partial class Api
     public static async Task<AuthResponse> CreateUserAsync(this TeleMedApiFactory factory, UserRole role, string? email = null, string? password = null)
     {
         await using var scope = factory.Services.CreateAsyncScope();
-        var user = new User { Role = role, FullName = $"Test {role}", Email = email ?? $"{Guid.NewGuid():N}@example.com" };
+        // Factory patients are Sri Lankan citizens so the existing LKR booking suite keeps its prices.
+        // Accounts created through registration are international unless a Sri Lankan IP confirms citizenship.
+        var user = new User
+        {
+            Role = role,
+            FullName = $"Test {role}",
+            Email = email ?? $"{Guid.NewGuid():N}@example.com",
+            IsSriLankanCitizen = true,
+        };
         await scope.ServiceProvider.GetRequiredService<IUserAccounts>().CreateAsync(user, password);
         var session = scope.ServiceProvider.GetRequiredService<SessionIssuer>().Issue(user);
         await scope.ServiceProvider.GetRequiredService<IUnitOfWork>().SaveChangesAsync(Ct);

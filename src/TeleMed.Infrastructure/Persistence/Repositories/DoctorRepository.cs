@@ -105,6 +105,7 @@ internal sealed class DoctorRepository(AppDbContext db) : IDoctorRepository
                 x.User.Email,
                 x.Doctor.FeeCents,
                 x.Doctor.CommissionBps,
+                x.Doctor.ForeignMultiplier,
                 x.Doctor.CreatedAt))
             .ToListAsync(ct);
         return (items, total);

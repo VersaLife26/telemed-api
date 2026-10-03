@@ -77,7 +77,8 @@ All options are validated at startup (`ValidateOnStart`), so a switch that is on
 | `Otp:FixedCode` | null | **test** | A six-digit code accepted for every OTP. |
 | `Sms:Provider` | None | Capture = **test** | `Dialog` needs `Sms:Dialog:{BaseUrl,ApplicationId,Password}`. `Capture` writes to `captured_messages`. |
 | `Email:Provider` | None | Capture = **test** | `Smtp` needs `Email:FromAddress` and `Email:Smtp:{Host,Port,Security,Username,Password}`. |
-| `Payments:PayHere:Enabled` | false | | Needs `MerchantId`, `MerchantSecret`, `AppId`, `AppSecret`, `BaseUrl`, `NotifyUrl`, `ReturnUrl` and `CancelUrl`. |
+| `Payments:PayHere:Enabled` | false | | Needs `MerchantId`, `MerchantSecret`, `AppId`, `AppSecret`, `BaseUrl`, `NotifyUrl`, `ReturnUrl` and `CancelUrl`. Charges Sri Lankan citizens in LKR. |
+| `Payments:PayHereInternational:Enabled` | false | | Same fields as `PayHere`, for a second merchant. Charges everyone else in USD. |
 | `Payments:Mock:Enabled` | false | **test** | Enables provider `mock` and `POST /payments/{id}/mock/complete`. |
 | `Payments:Mock:AutoSucceed` | false | **test** | Mock intents succeed immediately. Requires `Mock:Enabled`. |
 | `Turn:Provider` | None | | `Static` uses `Turn:StaticUrls`, `Username` and `Credential`. `Cloudflare` uses `Turn:Cloudflare:{KeyId,ApiToken}`. `Turn:StunUrls` is always served. |

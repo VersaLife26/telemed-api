@@ -15,6 +15,7 @@ public class UserErasureTests(ApiFixture fixture) : IntegrationTest(fixture)
         var doctor = await Factory.BookableDoctorAsync();
         var auth = await Factory.SignInWithPhoneAsync("+94770001234");
         var client = Factory.CreateClient().WithBearer(auth.AccessToken);
+        await Fixture.ExecuteSqlAsync($"UPDATE users SET is_sri_lankan_citizen = true, national_id_encrypted = 'cipher' WHERE id = '{auth.User.Id}'");
         (await client.PutAsync("/api/v1/me/photo", DoctorFlows.File(DoctorFlows.Png, "me.png"), Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
         var photoKey = (await Fixture.ScalarAsync<string>($"SELECT photo_storage_key FROM users WHERE id = '{auth.User.Id}'"))!;
         var booked = await client.BookedAsync(doctor.DoctorId, await Factory.FreeSlotAsync(doctor.DoctorId, TimeSpan.FromHours(3)));
@@ -39,6 +40,7 @@ public class UserErasureTests(ApiFixture fixture) : IntegrationTest(fixture)
             FROM users WHERE id = '{auth.User.Id}'
             """);
         row.ShouldBe($"{UserErasureJob.ErasedName}|-|-|-|-|-|-|-|-|deleted|true");
+        (await Fixture.ScalarAsync<string?>($"SELECT national_id_encrypted FROM users WHERE id = '{auth.User.Id}'")).ShouldBeNull();
         (await Fixture.ScalarAsync<long>($"SELECT count(*) FROM user_logins WHERE user_id = '{auth.User.Id}'")).ShouldBe(0);
         (await Fixture.ScalarAsync<long>($"SELECT count(*) FROM refresh_tokens WHERE user_id = '{auth.User.Id}' AND revoked_at IS NULL")).ShouldBe(0);
         File.Exists(Path.Combine(Factory.StorageRoot, photoKey)).ShouldBeFalse();

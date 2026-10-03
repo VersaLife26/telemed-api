@@ -82,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<ConsultationSweepJob>();
         services.AddScoped<AutoCompleteAppointmentsJob>();
         services.AddScoped<PayoutService>();
+        services.AddScoped<BillingSettingsService>();
         services.AddScoped<FinanceService>();
         services.AddScoped<AdminRefundService>();
         services.AddScoped<PromoCodeService>();

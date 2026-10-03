@@ -22,6 +22,8 @@ public sealed class AuthService(
     SessionIssuer sessions,
     SessionActivity sessionActivity,
     ICurrentActor actor,
+    IRequestContext requestContext,
+    IBankDataCipher cipher,
     IUnitOfWork unitOfWork,
     TimeProvider time)
 {
@@ -104,6 +106,7 @@ public sealed class AuthService(
                 user.EmailConfirmed = true;
             }
 
+            PatientResidency.Apply(user, requestContext.CountryCode, request.IsSriLankanCitizen, request.NationalId, cipher);
             await accounts.CreateAsync(user, password: null);
         }
         else if (user.Status == UserStatus.Active)
@@ -134,6 +137,9 @@ public sealed class AuthService(
         return session.Response;
     }
 
+    public RegistrationContextDto RegistrationContext() =>
+        new(requestContext.CountryCode, PatientResidency.AsksCitizenship(requestContext.CountryCode));
+
     public async Task<AuthResponse> RegisterEmailAsync(RegisterEmailRequest request, CancellationToken ct)
     {
         var address = Emails.Normalize(request.Email);
@@ -149,6 +155,7 @@ public sealed class AuthService(
             FullName = request.FullName.Trim(),
             Language = request.Language ?? Language.En,
         };
+        PatientResidency.Apply(user, requestContext.CountryCode, request.IsSriLankanCitizen, request.NationalId, cipher);
         await accounts.CreateAsync(user, request.Password);
         var session = sessions.Issue(user);
         sessionActivity.LoggedIn(user);
@@ -279,6 +286,7 @@ public sealed class AuthService(
                     EmailConfirmed = true,
                     FullName = string.IsNullOrWhiteSpace(identity.Name) ? address.Split('@')[0] : identity.Name.Trim(),
                 };
+                PatientResidency.Apply(user, requestContext.CountryCode, request.IsSriLankanCitizen, request.NationalId, cipher);
                 await accounts.CreateAsync(user, password: null);
             }
             else if (!user.EmailConfirmed)

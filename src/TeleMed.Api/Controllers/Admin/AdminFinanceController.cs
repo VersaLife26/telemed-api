@@ -17,7 +17,8 @@ public sealed class AdminFinanceController(
     FinanceService finance,
     PayoutService payouts,
     AdminRefundService refunds,
-    PromoCodeService promoCodes) : ControllerBase
+    PromoCodeService promoCodes,
+    BillingSettingsService billing) : ControllerBase
 {
     [HttpGet("finance/ledger")]
     public Task<LedgerPageDto> Ledger([FromQuery] LedgerQuery query, CancellationToken ct) => finance.ListLedgerAsync(query, ct);
@@ -41,6 +42,13 @@ public sealed class AdminFinanceController(
     [HttpPut("finance/commission/doctors/{doctorId:guid}")]
     public Task<CommissionDto> SetDoctorCommission(Guid doctorId, SetDoctorCommissionRequest request, CancellationToken ct) =>
         finance.SetDoctorRateAsync(doctorId, request, ct);
+
+    [HttpGet("finance/billing")]
+    public Task<BillingSettingsDto> Billing(CancellationToken ct) => billing.GetAsync(ct);
+
+    [HttpPut("finance/billing")]
+    public Task<BillingSettingsDto> UpdateBilling(UpdateBillingSettingsRequest request, CancellationToken ct) =>
+        billing.UpdateAsync(request, ct);
 
     [HttpGet("finance/payout-batches")]
     public Task<PagedResult<PayoutBatchDto>> ListPayoutBatches([FromQuery] PayoutBatchQuery query, CancellationToken ct) => payouts.ListBatchesAsync(query, ct);

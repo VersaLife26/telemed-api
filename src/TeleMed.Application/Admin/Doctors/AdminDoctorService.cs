@@ -5,6 +5,7 @@ using TeleMed.Application.Doctors;
 using TeleMed.Application.Vault;
 using TeleMed.Domain.Entities;
 using TeleMed.Domain.Enums;
+using TeleMed.Domain.Rules;
 
 namespace TeleMed.Application.Admin.Doctors;
 
@@ -14,6 +15,7 @@ public sealed class AdminDoctorService(
     IDoctorDocumentRepository documents,
     IUserAccounts accounts,
     IFileStorage storage,
+    IBillingSettingsRepository billing,
     VaultAccessPolicy access,
     IUnitOfWork unitOfWork,
     TimeProvider time)
@@ -74,11 +76,29 @@ public sealed class AdminDoctorService(
         return await ToDtoAsync(doctor, ct);
     }
 
-    private async Task<AdminDoctorDto> ToDtoAsync(Doctor doctor, CancellationToken ct) =>
-        doctor.ToAdminDto(
+    public async Task<AdminDoctorDto> SetForeignMultiplierAsync(Guid id, SetForeignMultiplierRequest request, CancellationToken ct)
+    {
+        var doctor = await LoadAsync(id, ct);
+        doctor.ForeignMultiplier = request.Multiplier;
+        await unitOfWork.SaveChangesAsync(ct);
+        return await ToDtoAsync(doctor, ct);
+    }
+
+    private async Task<AdminDoctorDto> ToDtoAsync(Doctor doctor, CancellationToken ct)
+    {
+        var dto = doctor.ToAdminDto(
             await accounts.FindByIdAsync(doctor.UserId, ct),
             await documents.ListLiveForDoctorAsync(doctor.Id, ct),
             storage);
+        if ((await billing.GetAsync(ct)).LkrPerUsd is { } rate
+            && doctor.ForeignMultiplier is { } multiplier
+            && ForeignPricing.TryUsdCents(doctor.FeeCents, multiplier, rate) is { } usd)
+        {
+            return dto with { ForeignFeeCents = usd, ForeignCurrency = ForeignPricing.Currency };
+        }
+
+        return dto;
+    }
 
     private async Task<Doctor> LoadAsync(Guid id, CancellationToken ct) =>
         await doctors.FindAsync(id, ct) ?? throw new NotFoundException("Doctor not found.");

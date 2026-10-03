@@ -46,7 +46,8 @@ internal sealed class PlatformUserRepository(AppDbContext db) : IPlatformUserRep
          from d in doctors.DefaultIfEmpty()
          select new PlatformUserDetailDto(
              u.Id, u.Role, u.FullName, u.Email, u.EmailConfirmed, u.PhoneNumber, u.Language, u.DateOfBirth, u.Sex, u.Status,
-             u.SuspendedAt, u.SuspendedReason, u.SuspendedBy, u.ErasureDueAt, u.AnonymizedAt, d == null ? null : d.Id, u.CreatedAt))
+             u.SuspendedAt, u.SuspendedReason, u.SuspendedBy, u.ErasureDueAt, u.AnonymizedAt, d == null ? null : d.Id,
+             u.IsSriLankanCitizen, u.NationalIdEncrypted != null, u.RegistrationCountry, d == null ? null : d.ForeignMultiplier, u.CreatedAt))
         .SingleOrDefaultAsync(ct);
 
     public async Task<AppointmentSummaryDto> SummarizeAppointmentsAsync(Guid userId, CancellationToken ct)

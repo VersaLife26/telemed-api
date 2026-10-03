@@ -10,4 +10,19 @@ internal sealed class HttpRequestContext(IHttpContextAccessor accessor) : IReque
     public string? UserAgent => accessor.HttpContext?.Request.Headers.UserAgent is { Count: > 0 } ua ? ua.ToString() : null;
 
     public string? RequestId => accessor.HttpContext?.TraceIdentifier;
+
+    public string? CountryCode
+    {
+        get
+        {
+            var raw = accessor.HttpContext?.Request.Headers["CF-IPCountry"].ToString();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return null;
+            }
+
+            var code = raw.Trim().ToUpperInvariant();
+            return code.Length == 2 && code.All(char.IsAsciiLetter) ? code : null;
+        }
+    }
 }

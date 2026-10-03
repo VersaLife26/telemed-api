@@ -31,4 +31,8 @@ public sealed class AdminDoctorsController(AdminDoctorService doctors) : Control
 
     [HttpPost("{id:guid}/reinstate")]
     public Task<AdminDoctorDto> Reinstate(Guid id, CancellationToken ct) => doctors.ReinstateAsync(id, ct);
+
+    [HttpPut("{id:guid}/foreign-multiplier")]
+    public Task<AdminDoctorDto> SetForeignMultiplier(Guid id, SetForeignMultiplierRequest request, CancellationToken ct) =>
+        doctors.SetForeignMultiplierAsync(id, request, ct);
 }

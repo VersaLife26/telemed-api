@@ -36,6 +36,7 @@ public sealed class OtpVerifyRequestValidator : AbstractValidator<OtpVerifyReque
         this.DestinationRules(x => x.Phone, x => x.Email);
         RuleFor(x => x.Code).NotEmpty().Matches("^[0-9]{6}$");
         RuleFor(x => x.Language).IsInEnum();
+        RuleFor(x => x.NationalId).MaximumLength(20);
     }
 }
 
@@ -47,6 +48,7 @@ public sealed class RegisterEmailRequestValidator : AbstractValidator<RegisterEm
         RuleFor(x => x.Password).ValidPassword();
         RuleFor(x => x.FullName).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Language).IsInEnum();
+        RuleFor(x => x.NationalId).MaximumLength(20);
     }
 }
 
@@ -64,6 +66,7 @@ public sealed class GoogleLoginRequestValidator : AbstractValidator<GoogleLoginR
     public GoogleLoginRequestValidator()
     {
         RuleFor(x => x.IdToken).NotEmpty().MaximumLength(8192);
+        RuleFor(x => x.NationalId).MaximumLength(20);
     }
 }
 

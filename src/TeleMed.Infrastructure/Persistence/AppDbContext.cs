@@ -48,6 +48,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     public DbSet<PayoutBatch> PayoutBatches => Set<PayoutBatch>();
     public DbSet<Payout> Payouts => Set<Payout>();
     public DbSet<PayoutAdjustment> PayoutAdjustments => Set<PayoutAdjustment>();
+    public DbSet<PlatformBillingSettings> PlatformBillingSettings => Set<PlatformBillingSettings>();
     public DbSet<Dispute> Disputes => Set<Dispute>();
     public DbSet<DisputeComment> DisputeComments => Set<DisputeComment>();
 

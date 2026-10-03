@@ -15,6 +15,8 @@ public sealed class AppointmentService(
     IAppointmentRepository appointments,
     IPaymentRepository payments,
     IDoctorRepository doctors,
+    IUserAccounts accounts,
+    IBillingSettingsRepository billing,
     ISchedulingRepository scheduling,
     ICalendarLock calendar,
     IUnitOfWork unitOfWork,
@@ -39,6 +41,9 @@ public sealed class AppointmentService(
         {
             throw new ConflictException("fee_not_set", "This doctor has no consultation fee set.");
         }
+
+        var patient = await accounts.FindByIdAsync(patientId, ct) ?? throw new NotFoundException("Patient not found.");
+        var (feeCents, currency) = await QuoteAsync(doctor, patient, ct);
 
         var policy = doctor.ToPolicy();
         var now = time.GetUtcNow();
@@ -67,8 +72,8 @@ public sealed class AppointmentService(
             DoctorId = doctor.Id,
             StartAt = slot.StartAt,
             EndAt = slot.EndAt,
-            FeeCents = doctor.FeeCents,
-            Currency = doctor.Currency,
+            FeeCents = feeCents,
+            Currency = currency,
             Intake = new AppointmentIntake(request.Intake.Symptoms.Trim(), Blank(request.Intake.VisitRelation)),
             VisitPatientName = request.VisitPatient.Name.Trim(),
             VisitPatientDateOfBirth = request.VisitPatient.DateOfBirth,
@@ -82,8 +87,8 @@ public sealed class AppointmentService(
             AppointmentId = appointment.Id,
             PatientId = patientId,
             DoctorId = doctor.Id,
-            Currency = doctor.Currency,
-            GrossCents = doctor.FeeCents,
+            Currency = currency,
+            GrossCents = feeCents,
         };
         await lifecycle.SetPriceAsync(payment, discountCents: 0, promoCode: null, ct);
         appointments.Add(appointment);
@@ -91,6 +96,33 @@ public sealed class AppointmentService(
         await unitOfWork.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         return appointment.ToDto();
+    }
+
+    // Sri Lankan citizens pay the doctor's LKR fee. Everyone else pays that fee times the admin multiplier, in USD.
+    private async Task<(long FeeCents, string Currency)> QuoteAsync(Doctor doctor, User patient, CancellationToken ct)
+    {
+        if (patient.IsSriLankanCitizen)
+        {
+            return (doctor.FeeCents, doctor.Currency);
+        }
+
+        if (doctor.ForeignMultiplier is not { } multiplier)
+        {
+            throw new ConflictException("foreign_fee_not_set", "This doctor is not available to international patients yet.");
+        }
+
+        if ((await billing.GetAsync(ct)).LkrPerUsd is not { } rate)
+        {
+            throw new ConflictException("exchange_rate_not_set", "International pricing is not configured yet.");
+        }
+
+        var usd = ForeignPricing.TryUsdCents(doctor.FeeCents, multiplier, rate);
+        if (usd is null || usd < PlatformPolicy.MinChargeableCents)
+        {
+            throw new ConflictException("foreign_fee_too_small", "The international fee for this doctor is below the minimum charge.");
+        }
+
+        return (usd.Value, ForeignPricing.Currency);
     }
 
     public async Task<PagedResult<AppointmentDto>> ListAsync(AppointmentQuery query, CancellationToken ct)

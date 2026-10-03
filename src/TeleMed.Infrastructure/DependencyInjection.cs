@@ -81,6 +81,7 @@ public static class DependencyInjection
         services.AddScoped<IContentRepository, ContentRepository>();
         services.AddScoped<IDoctorApplicationRepository, DoctorApplicationRepository>();
         services.AddScoped<IDoctorRepository, DoctorRepository>();
+        services.AddScoped<IBillingSettingsRepository, BillingSettingsRepository>();
         services.AddScoped<IDoctorDocumentRepository, DoctorDocumentRepository>();
         services.AddScoped<ISchedulingRepository, SchedulingRepository>();
         services.AddScoped<ICalendarLock, CalendarLock>();
@@ -235,10 +236,17 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(PaymentsOptions.Section))
             .Validate(o => o.PayHere.IsValid(),
                 "Payments:PayHere:Enabled requires MerchantId, MerchantSecret, AppId, AppSecret and absolute BaseUrl, NotifyUrl, ReturnUrl and CancelUrl.")
+            .Validate(o => o.PayHereInternational.IsValid(),
+                "Payments:PayHereInternational:Enabled requires MerchantId, MerchantSecret, AppId, AppSecret and absolute BaseUrl, NotifyUrl, ReturnUrl and CancelUrl.")
             .Validate(o => !o.Mock.AutoSucceed || o.Mock.Enabled, "Payments:Mock:AutoSucceed requires Payments:Mock:Enabled.")
             .ValidateOnStart();
         services.AddHttpClient<PayHereProvider>((sp, http) =>
-            http.Timeout = sp.GetRequiredService<IOptions<PaymentsOptions>>().Value.PayHere.Timeout);
+        {
+            var payments = sp.GetRequiredService<IOptions<PaymentsOptions>>().Value;
+            http.Timeout = payments.PayHere.Timeout > payments.PayHereInternational.Timeout
+                ? payments.PayHere.Timeout
+                : payments.PayHereInternational.Timeout;
+        });
         services.AddScoped<IPaymentProvider>(sp => sp.GetRequiredService<PayHereProvider>());
         services.AddScoped<IPayHereWebhookVerifier>(sp => sp.GetRequiredService<PayHereProvider>());
         services.AddScoped<IPaymentProvider, MockPaymentProvider>();

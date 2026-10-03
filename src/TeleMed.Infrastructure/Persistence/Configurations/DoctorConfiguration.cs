@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NpgsqlTypes;
@@ -17,6 +18,12 @@ internal sealed class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
         builder.ToTable("doctors", t =>
         {
             t.HasCheckConstraint("ck_doctors_fee_cents", $"fee_cents BETWEEN {PlatformPolicy.MinFeeCents} AND {PlatformPolicy.MaxFeeCents}");
+            t.HasCheckConstraint("ck_doctors_foreign_multiplier",
+                "foreign_multiplier IS NULL OR (foreign_multiplier >= "
+                + ForeignPricing.MinMultiplier.ToString(CultureInfo.InvariantCulture)
+                + " AND foreign_multiplier <= "
+                + ForeignPricing.MaxMultiplier.ToString(CultureInfo.InvariantCulture)
+                + ")");
             t.HasCheckConstraint("ck_doctors_languages", LanguagesCheck);
             t.HasCheckConstraint("ck_doctors_experience_years", "experience_years >= 0");
             t.HasCheckConstraint("ck_doctors_schedule", "slot_duration_minutes > 0 AND buffer_minutes >= 0 AND max_per_day > 0 AND advance_days > 0");
@@ -32,6 +39,7 @@ internal sealed class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
         builder.Property(d => d.LanguageOther).HasMaxLength(100);
         builder.Property(d => d.Qualifications).HasJsonbConversion();
         builder.Property(d => d.Currency).HasMaxLength(3).IsFixedLength();
+        builder.Property(d => d.ForeignMultiplier).HasPrecision(6, 2);
         builder.Property(d => d.BankName).HasMaxLength(100);
         builder.Property(d => d.BankBranch).HasMaxLength(100);
         builder.Property(d => d.SuspendedReason).HasMaxLength(1000);

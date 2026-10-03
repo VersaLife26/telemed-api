@@ -5,7 +5,7 @@ using TeleMed.Application.Users;
 
 namespace TeleMed.Application.Doctors;
 
-public sealed class DoctorDirectoryService(IDoctorRepository doctors, IFileStorage storage)
+public sealed class DoctorDirectoryService(IDoctorRepository doctors, IBillingSettingsRepository billing, IFileStorage storage)
 {
     public async Task<PagedResult<PublicDoctorDto>> SearchAsync(DoctorSearchQuery query, CancellationToken ct)
     {
@@ -19,11 +19,12 @@ public sealed class DoctorDirectoryService(IDoctorRepository doctors, IFileStora
             query.Skip,
             query.PageSize);
         var (items, total) = await doctors.SearchListedAsync(filter, ct);
-        return new PagedResult<PublicDoctorDto>(items.Select(d => d.ToPublicDto(storage)).ToList(), query.Page, query.PageSize, total);
+        var rate = await LkrPerUsdAsync(ct);
+        return new PagedResult<PublicDoctorDto>(items.Select(d => d.ToPublicDto(storage, rate)).ToList(), query.Page, query.PageSize, total);
     }
 
     public async Task<PublicDoctorDto> GetAsync(Guid id, CancellationToken ct) =>
-        (await LoadListedAsync(id, ct)).ToPublicDto(storage);
+        (await LoadListedAsync(id, ct)).ToPublicDto(storage, await LkrPerUsdAsync(ct));
 
     public async Task<PhotoUrlDto> GetPhotoUrlAsync(Guid id, CancellationToken ct)
     {
@@ -33,4 +34,6 @@ public sealed class DoctorDirectoryService(IDoctorRepository doctors, IFileStora
 
     private async Task<Domain.Entities.Doctor> LoadListedAsync(Guid id, CancellationToken ct) =>
         await doctors.FindListedAsync(id, ct) ?? throw new NotFoundException("Doctor not found.");
+
+    private async Task<decimal?> LkrPerUsdAsync(CancellationToken ct) => (await billing.GetAsync(ct)).LkrPerUsd;
 }

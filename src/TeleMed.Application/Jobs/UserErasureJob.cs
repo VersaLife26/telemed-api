@@ -42,6 +42,8 @@ public sealed class UserErasureJob(
                 user.Sex = null;
                 user.Allergies = null;
                 user.PhotoStorageKey = null;
+                user.NationalIdEncrypted = null;
+                user.IsSriLankanCitizen = false;
                 user.AnonymizedAt = now;
                 await accounts.RemoveLoginsAsync(user, ct);
                 await sessions.RevokeAllAsync(user, ct);

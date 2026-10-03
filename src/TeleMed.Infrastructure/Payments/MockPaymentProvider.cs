@@ -11,6 +11,8 @@ internal sealed class MockPaymentProvider(IOptions<PaymentsOptions> options) : I
 
     public bool IsEnabled => options.Value.Mock.Enabled;
 
+    public bool CanCharge(string currency) => true;
+
     public PaymentIntent CreateIntent(PaymentIntentRequest request) =>
         new($"mock_{request.PaymentId:N}", null, null, options.Value.Mock.AutoSucceed);
 

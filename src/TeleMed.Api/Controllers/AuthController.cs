@@ -20,6 +20,10 @@ public sealed class AuthController(AuthService auth) : ControllerBase
     [EnableRateLimiting(RateLimitingSetup.OtpVerify)]
     public Task<AuthResponse> VerifyOtp(OtpVerifyRequest request, CancellationToken ct) => auth.VerifyOtpAsync(request, ct);
 
+    [HttpGet("registration-context")]
+    [AllowAnonymous]
+    public RegistrationContextDto RegistrationContext() => auth.RegistrationContext();
+
     [HttpPost("register/email")]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitingSetup.Login)]

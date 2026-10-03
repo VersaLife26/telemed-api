@@ -5,6 +5,7 @@ public sealed class PaymentsOptions
     public const string Section = "Payments";
 
     public PayHereOptions PayHere { get; set; } = new();
+    public PayHereOptions PayHereInternational { get; set; } = new();
     public MockPaymentOptions Mock { get; set; } = new();
 }
 

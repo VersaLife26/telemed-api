@@ -34,7 +34,7 @@ internal sealed class PayoutConfiguration : IEntityTypeConfiguration<Payout>
         builder.HasOne<Doctor>().WithMany().HasForeignKey(p => p.DoctorId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<AdminUser>().WithMany().HasForeignKey(p => p.MarkedByAdminId).OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(p => new { p.DoctorId, p.Period }).IsUnique().HasDatabaseName("ux_payouts_doctor_id_period");
+        builder.HasIndex(p => new { p.DoctorId, p.Period, p.Currency }).IsUnique().HasDatabaseName("ux_payouts_doctor_id_period");
         builder.HasIndex(p => p.BatchId);
     }
 }

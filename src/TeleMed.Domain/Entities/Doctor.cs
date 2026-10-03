@@ -21,6 +21,8 @@ public class Doctor : Entity, IAuditable
     // Null means the platform default commission applies.
     public int? CommissionBps { get; set; }
     public string Currency { get; init; } = PlatformPolicy.Currency;
+    // International patients pay FeeCents × this, converted to USD. Null means they cannot book this doctor.
+    public decimal? ForeignMultiplier { get; set; }
     public bool AcceptsNewPatients { get; set; } = true;
     public required string BankName { get; set; }
     public required string BankBranch { get; set; }

@@ -31,6 +31,10 @@ public sealed record PlatformUserDetailDto(
     DateTimeOffset? ErasureDueAt,
     DateTimeOffset? AnonymizedAt,
     Guid? DoctorId,
+    bool IsSriLankanCitizen,
+    bool HasNationalId,
+    string? RegistrationCountry,
+    decimal? ForeignMultiplier,
     DateTimeOffset CreatedAt);
 
 public sealed record AppointmentSummaryDto(int Total, int PendingPayment, int Confirmed, int Completed, int NoShow, int Cancelled, DateTimeOffset? LastStartAt);

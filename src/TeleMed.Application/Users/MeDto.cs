@@ -16,6 +16,7 @@ public sealed record MeDto
     public string? Allergies { get; init; }
     public string? PhotoUrl { get; init; }
     public bool HasPassword { get; init; }
+    public bool IsSriLankanCitizen { get; init; }
     public string Version { get; init; } = "";
 }
 

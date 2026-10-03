@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using TeleMed.Application.Abstractions;
 using TeleMed.Application.Common.Exceptions;
 using TeleMed.Domain.Enums;
+using TeleMed.Domain.Rules;
 using TeleMed.Infrastructure.Options;
 
 namespace TeleMed.Infrastructure.Payments;
@@ -16,18 +17,24 @@ namespace TeleMed.Infrastructure.Payments;
 internal sealed class PayHereProvider(HttpClient http, IOptions<PaymentsOptions> options, IMemoryCache cache, TimeProvider time)
     : IPaymentProvider, IPayHereWebhookVerifier
 {
-    private const string TokenCacheKey = "payhere:merchant-api-token";
+    private PayHereOptions Domestic => options.Value.PayHere;
 
-    private PayHereOptions Settings => options.Value.PayHere;
-
-    private string BaseUrl => Settings.BaseUrl.TrimEnd('/');
+    private PayHereOptions International => options.Value.PayHereInternational;
 
     public PaymentProvider Provider => PaymentProvider.Payhere;
 
-    public bool IsEnabled => Settings.Enabled;
+    public bool IsEnabled => Domestic.Enabled || International.Enabled;
+
+    public bool CanCharge(string currency) => AccountForCurrency(currency) is { Enabled: true };
 
     public PaymentIntent CreateIntent(PaymentIntentRequest request)
     {
+        var account = AccountForCurrency(request.Currency) ?? throw new InvalidOperationException("No PayHere account is configured for this currency.");
+        if (!account.Enabled)
+        {
+            throw new InvalidOperationException("The PayHere account for this currency is not enabled.");
+        }
+
         var orderId = request.PaymentId.ToString("D");
         var amount = PayHereSignature.FormatAmount(request.AmountCents);
         var currency = request.Currency.ToUpperInvariant();
@@ -36,28 +43,29 @@ internal sealed class PayHereProvider(HttpClient http, IOptions<PaymentsOptions>
             throw new InvalidOperationException("Refusing to sign a PayHere checkout whose hash preimage would be ambiguous.");
         }
 
+        var baseUrl = account.BaseUrl.TrimEnd('/');
         var fields = new Dictionary<string, string>
         {
-            ["merchant_id"] = Settings.MerchantId,
-            ["return_url"] = Settings.ReturnUrl,
-            ["cancel_url"] = Settings.CancelUrl,
-            ["notify_url"] = Settings.NotifyUrl,
+            ["merchant_id"] = account.MerchantId,
+            ["return_url"] = account.ReturnUrl,
+            ["cancel_url"] = account.CancelUrl,
+            ["notify_url"] = account.NotifyUrl,
             ["order_id"] = orderId,
             ["items"] = request.Description,
             ["currency"] = currency,
             ["amount"] = amount,
-            ["hash"] = PayHereSignature.CheckoutHash(Settings.MerchantId, orderId, amount, currency, PayHereSignature.Md5Upper(Settings.MerchantSecret)),
+            ["hash"] = PayHereSignature.CheckoutHash(account.MerchantId, orderId, amount, currency, PayHereSignature.Md5Upper(account.MerchantSecret)),
             ["first_name"] = "Patient",
             ["last_name"] = "User",
             ["email"] = request.CustomerEmail is { } email && email.Contains('@') ? email : $"patient-{orderId}@versalifehealth.com",
             ["phone"] = LocalPhone(request.CustomerPhone),
             ["address"] = "Colombo",
             ["city"] = "Colombo",
-            ["country"] = "Sri Lanka",
+            ["country"] = currency == ForeignPricing.Currency ? "International" : "Sri Lanka",
         };
         // Hold-on-card is a premium feature that sandbox merchants lack; there the hosted page errors, so charge at once.
-        var path = request.AuthorizeOnly && !BaseUrl.Contains("sandbox", StringComparison.OrdinalIgnoreCase) ? "/pay/authorize" : "/pay/checkout";
-        return new PaymentIntent(orderId, BaseUrl + path, fields, Succeeded: false);
+        var path = request.AuthorizeOnly && !baseUrl.Contains("sandbox", StringComparison.OrdinalIgnoreCase) ? "/pay/authorize" : "/pay/checkout";
+        return new PaymentIntent(orderId, baseUrl + path, fields, Succeeded: false);
     }
 
     public PaymentNotification Verify(IReadOnlyDictionary<string, string> fields)
@@ -72,12 +80,15 @@ internal sealed class PayHereProvider(HttpClient http, IOptions<PaymentsOptions>
         var signature = Field("md5sig").Trim().ToUpperInvariant();
         var payHereId = Field("payment_id");
 
+        var account = AccountForMerchant(merchantId);
+        var expectsUsd = string.Equals(currency, ForeignPricing.Currency, StringComparison.OrdinalIgnoreCase);
         if (merchantId.Length == 0 || orderId.Length == 0 || signature.Length == 0 || statusCode.Length == 0
-            || !PayHereSignature.FixedTimeEquals(merchantId, Settings.MerchantId)
+            || account is null
+            || expectsUsd != ReferenceEquals(account, International)
             // Before hashing, never after: the forged tuple carries a genuinely valid signature.
             || !PayHereSignature.IsUnambiguous(orderId, amount, currency, statusCode)
             || !PayHereSignature.FixedTimeEquals(
-                PayHereSignature.NotifyHash(merchantId, orderId, amount, currency, statusCode, PayHereSignature.Md5Upper(Settings.MerchantSecret)),
+                PayHereSignature.NotifyHash(merchantId, orderId, amount, currency, statusCode, PayHereSignature.Md5Upper(account.MerchantSecret)),
                 signature))
         {
             throw new BadRequestException("invalid_signature", "The payment notification could not be verified.");
@@ -114,7 +125,7 @@ internal sealed class PayHereProvider(HttpClient http, IOptions<PaymentsOptions>
             return Task.FromResult(new ProviderResult(ProviderResultStatus.NotSupported, Message: "No authorization token to capture."));
         }
 
-        return CallMerchantApiAsync("/merchant/v1/payment/capture", new
+        return CallMerchantApiAsync(AccountForCurrency(request.Currency), "/merchant/v1/payment/capture", new
         {
             authorization_token = request.AuthorizationToken,
             amount = decimal.Parse(PayHereSignature.FormatAmount(request.AmountCents), CultureInfo.InvariantCulture),
@@ -136,24 +147,29 @@ internal sealed class PayHereProvider(HttpClient http, IOptions<PaymentsOptions>
                 Message: "PayHere refunds are full-amount only; refund this partial amount manually in the PayHere portal."));
         }
 
-        return CallMerchantApiAsync("/merchant/v1/payment/refund", new
+        return CallMerchantApiAsync(AccountForCurrency(request.Currency), "/merchant/v1/payment/refund", new
         {
             payment_id = request.ProviderPaymentId,
             description = $"telemed refund {request.RefundId}",
         }, requireCapturedStatus: false, ct);
     }
 
-    private async Task<ProviderResult> CallMerchantApiAsync(string path, object body, bool requireCapturedStatus, CancellationToken ct)
+    private async Task<ProviderResult> CallMerchantApiAsync(PayHereOptions? account, string path, object body, bool requireCapturedStatus, CancellationToken ct)
     {
+        if (account is not { Enabled: true })
+        {
+            return new ProviderResult(ProviderResultStatus.Unavailable, Message: "The PayHere account for this currency is not enabled.");
+        }
+
         try
         {
-            var token = await AccessTokenAsync(ct);
+            var token = await AccessTokenAsync(account, ct);
             if (token is null)
             {
                 return new ProviderResult(ProviderResultStatus.Unavailable, Message: "PayHere token endpoint unavailable.");
             }
 
-            using var message = new HttpRequestMessage(HttpMethod.Post, BaseUrl + path) { Content = JsonContent.Create(body) };
+            using var message = new HttpRequestMessage(HttpMethod.Post, account.BaseUrl.TrimEnd('/') + path) { Content = JsonContent.Create(body) };
             message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using var response = await http.SendAsync(message, ct);
             if ((int)response.StatusCode >= 500)
@@ -179,19 +195,20 @@ internal sealed class PayHereProvider(HttpClient http, IOptions<PaymentsOptions>
     }
 
     // PayHere rate-limits the token endpoint far harder than the API itself.
-    private async Task<string?> AccessTokenAsync(CancellationToken ct)
+    private async Task<string?> AccessTokenAsync(PayHereOptions account, CancellationToken ct)
     {
-        if (cache.TryGetValue(TokenCacheKey, out string? cached))
+        var cacheKey = $"payhere:merchant-api-token:{account.MerchantId}";
+        if (cache.TryGetValue(cacheKey, out string? cached))
         {
             return cached;
         }
 
-        using var message = new HttpRequestMessage(HttpMethod.Post, BaseUrl + "/merchant/v1/oauth/token")
+        using var message = new HttpRequestMessage(HttpMethod.Post, account.BaseUrl.TrimEnd('/') + "/merchant/v1/oauth/token")
         {
             Content = new FormUrlEncodedContent([KeyValuePair.Create("grant_type", "client_credentials")]),
         };
         message.Headers.Authorization = new AuthenticationHeaderValue(
-            "Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Settings.AppId}:{Settings.AppSecret}")));
+            "Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{account.AppId}:{account.AppSecret}")));
         using var response = await http.SendAsync(message, ct);
         if (!response.IsSuccessStatusCode || await response.Content.ReadFromJsonAsync<TokenResponse>(ct) is not { AccessToken.Length: > 0 } token)
         {
@@ -199,9 +216,31 @@ internal sealed class PayHereProvider(HttpClient http, IOptions<PaymentsOptions>
         }
 
         var lifetime = token.ExpiresIn > 60 ? TimeSpan.FromSeconds(token.ExpiresIn - 30) : TimeSpan.FromMinutes(5);
-        cache.Set(TokenCacheKey, token.AccessToken, time.GetUtcNow() + lifetime);
+        cache.Set(cacheKey, token.AccessToken, time.GetUtcNow() + lifetime);
         return token.AccessToken;
     }
+
+    private PayHereOptions? AccountForCurrency(string currency) =>
+        string.Equals(currency, ForeignPricing.Currency, StringComparison.OrdinalIgnoreCase) ? International : Domestic;
+
+    // A merchant id of a different length must not throw out of FixedTimeEquals; it is simply not ours.
+    private PayHereOptions? AccountForMerchant(string merchantId)
+    {
+        if (Domestic.Enabled && SameMerchant(merchantId, Domestic.MerchantId))
+        {
+            return Domestic;
+        }
+
+        if (International.Enabled && SameMerchant(merchantId, International.MerchantId))
+        {
+            return International;
+        }
+
+        return null;
+    }
+
+    private static bool SameMerchant(string actual, string expected) =>
+        actual.Length == expected.Length && PayHereSignature.FixedTimeEquals(actual, expected);
 
     private static string LocalPhone(string? phone) => phone switch
     {

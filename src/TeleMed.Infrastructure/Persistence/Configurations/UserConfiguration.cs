@@ -10,6 +10,10 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("users");
 
+        builder.Property(u => u.IsSriLankanCitizen).HasDefaultValue(false);
+        builder.Property(u => u.RegistrationCountry).HasMaxLength(2).IsFixedLength();
+        builder.Property(u => u.NationalIdEncrypted).HasMaxLength(200);
+
         builder.HasIndex(u => u.NormalizedUserName).HasDatabaseName("ux_users_normalized_user_name");
 
         builder.HasIndex(u => u.NormalizedEmail)

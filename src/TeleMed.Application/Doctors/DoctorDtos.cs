@@ -32,6 +32,8 @@ public sealed record PublicDoctorDto
     public int ExperienceYears { get; init; }
     public long FeeCents { get; init; }
     public string Currency { get; init; } = "";
+    public long? ForeignFeeCents { get; init; }
+    public string? ForeignCurrency { get; init; }
     public bool AcceptsNewPatients { get; init; }
     public string? PhotoUrl { get; init; }
 }
