@@ -1,4 +1,5 @@
 using TeleMed.Application.Abstractions;
+using TeleMed.Application.Admin.Finance;
 using TeleMed.Application.Admin.Notifications;
 using TeleMed.Application.Appointments;
 using TeleMed.Application.Notifications.Templates;
@@ -16,6 +17,7 @@ public sealed class PaymentSettlementJob(
     IEnumerable<IPaymentProvider> providers,
     IUnitOfWork unitOfWork,
     PaymentLifecycle lifecycle,
+    ICommissionPolicy commission,
     AdminNotificationService adminInbox,
     TimeProvider time) : IBackgroundJob
 {
@@ -84,7 +86,7 @@ public sealed class PaymentSettlementJob(
                 payment.CapturedCents = capture;
                 payment.ProviderPaymentId = result.Reference ?? payment.ProviderPaymentId;
                 payment.FailureReason = null;
-                payment.ApplySplit(CommissionCalculator.Split(capture));
+                payment.ApplySplit(CommissionCalculator.Split(capture, await commission.GetEffectiveBpsAsync(payment.DoctorId, ct)));
                 if (await appointments.FindForUpdateAsync(payment.AppointmentId, ct) is { Status: AppointmentStatus.NoShow } appointment)
                 {
                     await lifecycle.StagePatientNoShowRefundIfNeededAsync(payment, appointment, ct);
@@ -164,7 +166,7 @@ public sealed class PaymentSettlementJob(
                 continue;
             }
 
-            lifecycle.Release(payment, redemption, "expired", restorePrice: payment.Status == PaymentStatus.Pending);
+            await lifecycle.ReleaseAsync(payment, redemption, "expired", restorePrice: payment.Status == PaymentStatus.Pending, ct);
             await unitOfWork.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
         }

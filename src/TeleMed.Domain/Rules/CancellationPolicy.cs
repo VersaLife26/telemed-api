@@ -8,15 +8,17 @@ public static class CancellationPolicy
     /// Share of the captured fee returned to the patient when the doctor marks a no-show.
     /// Commission and provider fee stay with the platform; the doctor's share is refunded.
     /// </summary>
-    public static int PatientNoShowRefundPercent(long amountCents)
+    public static int PatientNoShowRefundPercent(long amountCents) =>
+        PatientNoShowRefundPercent(CommissionCalculator.Split(amountCents));
+
+    public static int PatientNoShowRefundPercent(PaymentSplit split)
     {
-        if (amountCents <= 0)
+        if (split.AmountCents <= 0)
         {
             return 0;
         }
 
-        var split = CommissionCalculator.Split(amountCents);
-        return (int)Math.Clamp(CommissionCalculator.RoundHalfUp(split.PayoutCents * 100, amountCents), 0, 100);
+        return (int)Math.Clamp(CommissionCalculator.RoundHalfUp(split.PayoutCents * 100, split.AmountCents), 0, 100);
     }
 
     // Exactly two hours' notice counts as early: the patient gets the boundary.

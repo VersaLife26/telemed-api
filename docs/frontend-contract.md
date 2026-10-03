@@ -123,7 +123,7 @@ All paths are under `/api/v1/admin`.
 | `appointments/{id}/audit` | Same (plain list) |
 | `reschedule-requests`, `{id}/accept\|decline` | Unchanged |
 | `finance/ledger`, `finance/ledger/export` | `finance/ledger`, `finance/ledger.csv` |
-| `finance/commission-rules` (GET/PUT/history) | `GET finance/commission` (**read-only**: commission, provider fee and payout hold are code constants now) |
+| `finance/commission-rules` (GET/PUT/history) | `GET/PUT finance/commission` (default rate in basis points). `PUT finance/commission/doctors/{doctorId} {commissionBps}` sets or clears (`null`) a doctor override. Doctors without an override use the default. Provider fee and payout hold stay code constants. |
 | `finance/payout-batches`, `finance/payouts/run {from, to}` | `finance/payout-batches`, `finance/payout-batches/{id}`, `POST finance/payouts/run {date?}` (one closed day; the default is yesterday), `POST finance/payouts/{id}/mark-paid {transferReference}`, `POST finance/payouts/{id}/mark-failed {reason}` |
 | `finance/refunds/{id}/decision {decision, note}` | `POST finance/refunds/{id}/approve`, `…/reject {reason}`, `…/mark-refunded {reference}` (for manual_required refunds). A new manual refund is `POST payments/{paymentId}/refunds {amountCents, reason}`. |
 | `finance/promo-codes?include_inactive`, `POST`, `DELETE {code}` | `finance/promo-codes?isActive=`, `POST`, `PATCH {id}`, `POST {id}/deactivate` |
@@ -170,7 +170,7 @@ There are no endpoints for any of the following. Remove them from the UI.
 - Reviews and ratings (`rating`, `review_count`, `sort=rating`).
 - Record shares, the consent ledger, notification preferences, devices and push.
 - LiveKit, recording and FHIR. `provider`, `livekit_url` and `recording_mode` are gone from join.
-- The admin config UI and feature flags (`configs/*`), and the editable commission rules.
+- The admin config UI and feature flags (`configs/*`). Commission is editable: default platform rate plus optional per-doctor overrides.
 - Symptoms and articles CMS.
 - Double-booking tools and audit chain verification.
 - The Go test mode (`/test/status`, `/test/outbox`, `/test/rooms`). It is replaced by per-feature switches:

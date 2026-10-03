@@ -32,7 +32,15 @@ public sealed class AdminFinanceController(
     }
 
     [HttpGet("finance/commission")]
-    public CommissionDto Commission() => FinanceService.Commission;
+    public Task<CommissionDto> Commission(CancellationToken ct) => finance.GetCommissionAsync(ct);
+
+    [HttpPut("finance/commission")]
+    public Task<CommissionDto> UpdateCommission(UpdateCommissionRequest request, CancellationToken ct) =>
+        finance.UpdateDefaultAsync(request, ct);
+
+    [HttpPut("finance/commission/doctors/{doctorId:guid}")]
+    public Task<CommissionDto> SetDoctorCommission(Guid doctorId, SetDoctorCommissionRequest request, CancellationToken ct) =>
+        finance.SetDoctorRateAsync(doctorId, request, ct);
 
     [HttpGet("finance/payout-batches")]
     public Task<PagedResult<PayoutBatchDto>> ListPayoutBatches([FromQuery] PayoutBatchQuery query, CancellationToken ct) => payouts.ListBatchesAsync(query, ct);

@@ -19,6 +19,7 @@ public sealed record AdminDoctorListItemDto(
     string? Phone,
     string? Email,
     long FeeCents,
+    int? CommissionBps,
     DateTimeOffset CreatedAt);
 
 public sealed record AdminDoctorDto
@@ -38,6 +39,7 @@ public sealed record AdminDoctorDto
     public IReadOnlyList<QualificationDto> Qualifications { get; init; } = [];
     public int ExperienceYears { get; init; }
     public long FeeCents { get; init; }
+    public int? CommissionBps { get; init; }
     public string Currency { get; init; } = "";
     public bool AcceptsNewPatients { get; init; }
     public string BankName { get; init; } = "";

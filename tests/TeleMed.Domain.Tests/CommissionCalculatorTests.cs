@@ -16,6 +16,12 @@ public class CommissionCalculatorTests
     }
 
     [Fact]
+    public void Split_uses_an_explicit_commission_rate()
+    {
+        CommissionCalculator.Split(250_000, 1_000).ShouldBe(new PaymentSplit(250_000, 25_000, 7_500, 217_500));
+    }
+
+    [Fact]
     public void Split_always_balances()
     {
         for (long amount = 1; amount < 5_000; amount++)

@@ -1,8 +1,26 @@
 using FluentValidation;
 using TeleMed.Application.Common;
 using TeleMed.Domain.Enums;
+using TeleMed.Domain.Rules;
 
 namespace TeleMed.Application.Admin.Finance;
+
+public sealed class UpdateCommissionRequestValidator : AbstractValidator<UpdateCommissionRequest>
+{
+    public UpdateCommissionRequestValidator()
+    {
+        RuleFor(x => x.CommissionBps).InclusiveBetween(0, PlatformPolicy.MaxCommissionBps);
+    }
+}
+
+public sealed class SetDoctorCommissionRequestValidator : AbstractValidator<SetDoctorCommissionRequest>
+{
+    public SetDoctorCommissionRequestValidator()
+    {
+        RuleFor(x => x.CommissionBps).InclusiveBetween(0, PlatformPolicy.MaxCommissionBps)
+            .When(x => x.CommissionBps is not null);
+    }
+}
 
 public sealed class LedgerQueryValidator : AbstractValidator<LedgerQuery>
 {

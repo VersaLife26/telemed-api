@@ -6,10 +6,12 @@ public static class CommissionCalculator
 {
     public const int BasisPoints = 10_000;
 
-    public static PaymentSplit Split(long amountCents)
+    public static PaymentSplit Split(long amountCents, int commissionBps = PlatformPolicy.CommissionBps)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(amountCents);
-        var commission = RoundHalfUp(amountCents * PlatformPolicy.CommissionBps, BasisPoints);
+        ArgumentOutOfRangeException.ThrowIfNegative(commissionBps);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(commissionBps, PlatformPolicy.MaxCommissionBps);
+        var commission = RoundHalfUp(amountCents * commissionBps, BasisPoints);
         var fee = RoundHalfUp(amountCents * PlatformPolicy.ProviderFeeBps, BasisPoints) + PlatformPolicy.ProviderFeeFixedCents;
         return new PaymentSplit(amountCents, commission, fee, amountCents - commission - fee);
     }

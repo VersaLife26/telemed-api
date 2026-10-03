@@ -11487,6 +11487,181 @@
             "adminLocalJwt": []
           }
         ]
+      },
+      "put": {
+        "tags": [
+          "AdminFinance"
+        ],
+        "operationId": "AdminFinance_UpdateCommission",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommissionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/finance/commission/doctors/{doctorId}": {
+      "put": {
+        "tags": [
+          "AdminFinance"
+        ],
+        "operationId": "AdminFinance_SetDoctorCommission",
+        "parameters": [
+          {
+            "name": "doctorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetDoctorCommissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommissionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
       }
     },
     "/api/v1/admin/finance/payout-batches": {
@@ -15969,6 +16144,13 @@
             "type": "integer",
             "format": "int64"
           },
+          "commissionBps": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
           "currency": {
             "type": "string"
           },
@@ -16043,6 +16225,7 @@
           "phone",
           "email",
           "feeCents",
+          "commissionBps",
           "createdAt"
         ],
         "type": "object",
@@ -16078,6 +16261,13 @@
           "feeCents": {
             "type": "integer",
             "format": "int64"
+          },
+          "commissionBps": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           },
           "createdAt": {
             "type": "string",
@@ -17423,7 +17613,8 @@
           "providerFeeBps",
           "providerFeeFixedCents",
           "currency",
-          "payoutHoldHours"
+          "payoutHoldHours",
+          "doctorRates"
         ],
         "type": "object",
         "properties": {
@@ -17445,6 +17636,12 @@
           "payoutHoldHours": {
             "type": "integer",
             "format": "int32"
+          },
+          "doctorRates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DoctorCommissionDto"
+            }
           }
         }
       },
@@ -18498,6 +18695,31 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "DoctorCommissionDto": {
+        "required": [
+          "doctorId",
+          "displayName",
+          "slmcNumber",
+          "commissionBps"
+        ],
+        "type": "object",
+        "properties": {
+          "doctorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "slmcNumber": {
+            "type": "string"
+          },
+          "commissionBps": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -22379,6 +22601,21 @@
           }
         }
       },
+      "SetDoctorCommissionRequest": {
+        "required": [
+          "commissionBps"
+        ],
+        "type": "object",
+        "properties": {
+          "commissionBps": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "Sex": {
         "enum": [
           "female",
@@ -22646,6 +22883,18 @@
               "null",
               "boolean"
             ]
+          }
+        }
+      },
+      "UpdateCommissionRequest": {
+        "required": [
+          "commissionBps"
+        ],
+        "type": "object",
+        "properties": {
+          "commissionBps": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

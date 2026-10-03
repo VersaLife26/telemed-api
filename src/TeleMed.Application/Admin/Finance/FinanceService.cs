@@ -1,11 +1,14 @@
+using TeleMed.Application.Abstractions;
 using TeleMed.Application.Common;
+using TeleMed.Application.Common.Exceptions;
+using TeleMed.Application.Doctors;
 using TeleMed.Application.Payouts;
 using TeleMed.Domain.Rules;
 
 namespace TeleMed.Application.Admin.Finance;
 
 // The ledger is a view over captured payments and settled refunds, bucketed by Asia/Colombo dates.
-public sealed class FinanceService(IFinanceRepository finance, TimeProvider time)
+public sealed class FinanceService(IFinanceRepository finance, ICommissionPolicy commission, IDoctorRepository doctors, IUnitOfWork unitOfWork, TimeProvider time)
 {
     private static readonly string[] LedgerHeader =
     [
@@ -13,12 +16,30 @@ public sealed class FinanceService(IFinanceRepository finance, TimeProvider time
         "provider_fee_cents", "payout_cents", "currency", "provider", "reference",
     ];
 
-    public static CommissionDto Commission { get; } = new(
-        PlatformPolicy.CommissionBps,
-        PlatformPolicy.ProviderFeeBps,
-        PlatformPolicy.ProviderFeeFixedCents,
-        PlatformPolicy.Currency,
-        (int)PlatformPolicy.PayoutHold.TotalHours);
+    public async Task<CommissionDto> GetCommissionAsync(CancellationToken ct) =>
+        new(
+            await commission.GetDefaultBpsAsync(ct),
+            PlatformPolicy.ProviderFeeBps,
+            PlatformPolicy.ProviderFeeFixedCents,
+            PlatformPolicy.Currency,
+            (int)PlatformPolicy.PayoutHold.TotalHours,
+            await commission.ListDoctorRatesAsync(ct));
+
+    public async Task<CommissionDto> UpdateDefaultAsync(UpdateCommissionRequest request, CancellationToken ct)
+    {
+        var policy = await commission.GetForUpdateAsync(ct);
+        policy.DefaultCommissionBps = request.CommissionBps;
+        await unitOfWork.SaveChangesAsync(ct);
+        return await GetCommissionAsync(ct);
+    }
+
+    public async Task<CommissionDto> SetDoctorRateAsync(Guid doctorId, SetDoctorCommissionRequest request, CancellationToken ct)
+    {
+        var doctor = await doctors.FindAsync(doctorId, ct) ?? throw new NotFoundException("Doctor not found.");
+        doctor.CommissionBps = request.CommissionBps;
+        await unitOfWork.SaveChangesAsync(ct);
+        return await GetCommissionAsync(ct);
+    }
 
     public async Task<LedgerPageDto> ListLedgerAsync(LedgerQuery query, CancellationToken ct)
     {

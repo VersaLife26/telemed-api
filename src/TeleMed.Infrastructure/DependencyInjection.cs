@@ -98,6 +98,7 @@ public static class DependencyInjection
         services.AddScoped<IRecordAccessRepository, RecordAccessRepository>();
         services.AddScoped<IPayoutRepository, PayoutRepository>();
         services.AddScoped<IFinanceRepository, FinanceRepository>();
+        services.AddScoped<ICommissionPolicy, CommissionPolicyRepository>();
         services.AddScoped<IDisputeRepository, DisputeRepository>();
         services.AddScoped<IPlatformUserRepository, PlatformUserRepository>();
         services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();

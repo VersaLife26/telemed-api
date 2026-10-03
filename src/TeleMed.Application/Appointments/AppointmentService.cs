@@ -85,7 +85,7 @@ public sealed class AppointmentService(
             Currency = doctor.Currency,
             GrossCents = doctor.FeeCents,
         };
-        PaymentLifecycle.SetPrice(payment, discountCents: 0, promoCode: null);
+        await lifecycle.SetPriceAsync(payment, discountCents: 0, promoCode: null, ct);
         appointments.Add(appointment);
         payments.Add(payment);
         await unitOfWork.SaveChangesAsync(ct);

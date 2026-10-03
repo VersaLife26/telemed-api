@@ -24,6 +24,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     public DbSet<Holiday> Holidays => Set<Holiday>();
     public DbSet<SlotBlock> SlotBlocks => Set<SlotBlock>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<PlatformCommissionPolicy> PlatformCommissionPolicies => Set<PlatformCommissionPolicy>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Refund> Refunds => Set<Refund>();
     public DbSet<RescheduleRequest> RescheduleRequests => Set<RescheduleRequest>();

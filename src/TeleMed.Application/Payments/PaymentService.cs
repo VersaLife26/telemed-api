@@ -48,7 +48,7 @@ public sealed class PaymentService(
         {
             if (existing is not null)
             {
-                lifecycle.Release(payment, existing, "replaced", restorePrice: true);
+                await lifecycle.ReleaseAsync(payment, existing, "replaced", restorePrice: true, ct);
                 // The one-live-redemption-per-payment index must see the release before the new reservation.
                 await unitOfWork.SaveChangesAsync(ct);
             }
@@ -64,7 +64,7 @@ public sealed class PaymentService(
                 ExpiresAt = now + PlatformPolicy.PromoReservationTtl,
             };
             payments.AddRedemption(redemption);
-            PaymentLifecycle.SetPrice(payment, discount, promo.Code);
+            await lifecycle.SetPriceAsync(payment, discount, promo.Code, ct);
         }
 
         await unitOfWork.SaveChangesAsync(ct);
@@ -83,7 +83,7 @@ public sealed class PaymentService(
             throw new ConflictException("no_promo", "No promo code is applied to this payment.");
         }
 
-        lifecycle.Release(payment, redemption, "removed_by_patient", restorePrice: true);
+        await lifecycle.ReleaseAsync(payment, redemption, "removed_by_patient", restorePrice: true, ct);
         await unitOfWork.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         return await SummaryAsync(appointment, payment, ct);

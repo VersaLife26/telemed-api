@@ -20,6 +20,8 @@ internal sealed class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
             t.HasCheckConstraint("ck_doctors_languages", LanguagesCheck);
             t.HasCheckConstraint("ck_doctors_experience_years", "experience_years >= 0");
             t.HasCheckConstraint("ck_doctors_schedule", "slot_duration_minutes > 0 AND buffer_minutes >= 0 AND max_per_day > 0 AND advance_days > 0");
+            t.HasCheckConstraint("ck_doctors_commission_bps",
+                $"commission_bps IS NULL OR (commission_bps BETWEEN 0 AND {PlatformPolicy.MaxCommissionBps})");
         });
 
         builder.Property(d => d.SlmcNumber).HasMaxLength(20);

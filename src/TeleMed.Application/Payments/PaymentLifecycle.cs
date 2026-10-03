@@ -1,3 +1,4 @@
+using TeleMed.Application.Admin.Finance;
 using TeleMed.Application.Appointments;
 using TeleMed.Application.Common.Exceptions;
 using TeleMed.Application.Doctors;
@@ -20,6 +21,7 @@ public sealed class PaymentLifecycle(
     ISchedulingRepository scheduling,
     IRescheduleRepository reschedules,
     IPayoutRepository payouts,
+    ICommissionPolicy commission,
     AppointmentNotifier notifier,
     TimeProvider time)
 {
@@ -58,7 +60,7 @@ public sealed class PaymentLifecycle(
             return;
         }
 
-        appointment.RefundPercent = CancellationPolicy.PatientNoShowRefundPercent(payment.AmountCents);
+        appointment.RefundPercent = CancellationPolicy.PatientNoShowRefundPercent(payment.CurrentSplit());
         if (payment.Status is PaymentStatus.Succeeded or PaymentStatus.PartiallyRefunded)
         {
             await StagePatientNoShowRefundAsync(payment, appointment.RefundPercent.Value, ct);
@@ -70,7 +72,7 @@ public sealed class PaymentLifecycle(
         appointment.Status == AppointmentStatus.NoShow
             ? StagePatientNoShowRefundAsync(
                 payment,
-                appointment.RefundPercent ?? CancellationPolicy.PatientNoShowRefundPercent(payment.AmountCents),
+                appointment.RefundPercent ?? CancellationPolicy.PatientNoShowRefundPercent(payment.CurrentSplit()),
                 ct)
             : Task.CompletedTask;
 
@@ -235,27 +237,27 @@ public sealed class PaymentLifecycle(
     {
         if (await payments.FindLiveRedemptionAsync(payment.Id, ct) is { Status: PromoRedemptionStatus.Reserved } redemption)
         {
-            Release(payment, redemption, reason, restorePrice);
+            await ReleaseAsync(payment, redemption, reason, restorePrice, ct);
         }
     }
 
-    public void Release(Payment payment, PromoRedemption redemption, string reason, bool restorePrice)
+    public async Task ReleaseAsync(Payment payment, PromoRedemption redemption, string reason, bool restorePrice, CancellationToken ct)
     {
         redemption.Status = PromoRedemptionStatus.Released;
         redemption.ReleasedAt = time.GetUtcNow();
         redemption.ReleaseReason = reason;
         if (restorePrice)
         {
-            SetPrice(payment, discountCents: 0, promoCode: null);
+            await SetPriceAsync(payment, discountCents: 0, promoCode: null, ct);
         }
     }
 
-    public static void SetPrice(Payment payment, long discountCents, string? promoCode)
+    public async Task SetPriceAsync(Payment payment, long discountCents, string? promoCode, CancellationToken ct)
     {
         payment.DiscountCents = discountCents;
         payment.AmountCents = payment.GrossCents - discountCents;
         payment.PromoCode = promoCode;
-        payment.ApplySplit(CommissionCalculator.Split(payment.AmountCents));
+        payment.ApplySplit(CommissionCalculator.Split(payment.AmountCents, await commission.GetEffectiveBpsAsync(payment.DoctorId, ct)));
     }
 
     public async Task StageRefundAsync(Payment payment, int percent, RefundReason reason, CancellationToken ct)

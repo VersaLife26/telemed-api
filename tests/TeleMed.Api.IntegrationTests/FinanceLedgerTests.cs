@@ -82,15 +82,39 @@ public class FinanceLedgerTests(ApiFixture fixture) : IntegrationTest(fixture)
     }
 
     [Fact]
-    public async Task Commission_is_read_only_and_finance_only()
+    public async Task Commission_default_and_doctor_overrides_are_finance_only()
     {
         var finance = await Factory.AdminClientAsync(AdminRole.Finance);
         var commission = await (await finance.GetAsync("/api/v1/admin/finance/commission", Ct)).ReadAsync<CommissionDto>();
         commission.CommissionBps.ShouldBe(PlatformPolicy.CommissionBps);
         commission.ProviderFeeBps.ShouldBe(PlatformPolicy.ProviderFeeBps);
         commission.PayoutHoldHours.ShouldBe(24);
+        commission.DoctorRates.ShouldBeEmpty();
 
-        (await finance.PutJsonAsync("/api/v1/admin/finance/commission", new { commissionBps = 1 })).StatusCode.ShouldBe(HttpStatusCode.MethodNotAllowed);
+        var updated = await (await finance.PutJsonAsync("/api/v1/admin/finance/commission", new { commissionBps = 1_500 }))
+            .ReadAsync<CommissionDto>();
+        updated.CommissionBps.ShouldBe(1_500);
+
+        var doctor = await Factory.BookableDoctorAsync();
+        var withDoctor = await (await finance.PutJsonAsync(
+                $"/api/v1/admin/finance/commission/doctors/{doctor.DoctorId}", new { commissionBps = 1_000 }))
+            .ReadAsync<CommissionDto>();
+        withDoctor.DoctorRates.ShouldContain(r => r.DoctorId == doctor.DoctorId && r.CommissionBps == 1_000);
+
+        var patient = await Factory.PatientAsync();
+        var appointment = await Factory.CapturedAsync(patient, doctor.DoctorId, 9);
+        var split = await Fixture.ScalarAsync<string>(
+            $"SELECT commission_cents || ':' || provider_fee_cents || ':' || payout_cents FROM payments WHERE appointment_id = '{appointment.Id}'");
+        split.ShouldBe("25000:7500:217500");
+
+        var cleared = await (await finance.PutJsonAsync(
+                $"/api/v1/admin/finance/commission/doctors/{doctor.DoctorId}", new { commissionBps = (int?)null }))
+            .ReadAsync<CommissionDto>();
+        cleared.DoctorRates.ShouldBeEmpty();
+        cleared.CommissionBps.ShouldBe(1_500);
+
         (await (await Factory.AdminClientAsync(AdminRole.Ops)).GetAsync("/api/v1/admin/finance/commission", Ct)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await (await Factory.AdminClientAsync(AdminRole.Ops)).PutJsonAsync("/api/v1/admin/finance/commission", new { commissionBps = 1_000 }))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 }

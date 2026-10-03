@@ -53,7 +53,23 @@ public sealed record LedgerExportQuery : IDateRange
 
 public sealed record LedgerFilter(DateTimeOffset From, DateTimeOffset To, Guid? DoctorId);
 
-public sealed record CommissionDto(int CommissionBps, int ProviderFeeBps, long ProviderFeeFixedCents, string Currency, int PayoutHoldHours);
+public sealed record CommissionDto(
+    int CommissionBps,
+    int ProviderFeeBps,
+    long ProviderFeeFixedCents,
+    string Currency,
+    int PayoutHoldHours,
+    IReadOnlyList<DoctorCommissionDto> DoctorRates);
+
+public sealed record DoctorCommissionDto(
+    Guid DoctorId,
+    string DisplayName,
+    string SlmcNumber,
+    int CommissionBps);
+
+public sealed record UpdateCommissionRequest(int CommissionBps);
+
+public sealed record SetDoctorCommissionRequest(int? CommissionBps);
 
 public sealed record AdminRefundDto(
     Guid Id,

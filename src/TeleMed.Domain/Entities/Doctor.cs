@@ -18,6 +18,8 @@ public class Doctor : Entity, IAuditable
     public IReadOnlyList<Qualification> Qualifications { get; set; } = [];
     public int ExperienceYears { get; set; }
     public long FeeCents { get; set; }
+    // Null means the platform default commission applies.
+    public int? CommissionBps { get; set; }
     public string Currency { get; init; } = PlatformPolicy.Currency;
     public bool AcceptsNewPatients { get; set; } = true;
     public required string BankName { get; set; }
