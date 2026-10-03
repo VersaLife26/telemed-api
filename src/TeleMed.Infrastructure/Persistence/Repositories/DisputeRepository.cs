@@ -16,12 +16,17 @@ internal sealed class DisputeRepository(AppDbContext db) : IDisputeRepository
     public Task<Dispute?> FindForUpdateAsync(Guid id, CancellationToken ct) => db.Disputes.SingleOrDefaultAsync(d => d.Id == id, ct);
 
     public async Task<(IReadOnlyList<Dispute> Items, long Total)> ListAsync(
-        DisputeStatus? status, Guid? assignedAdminId, Guid? appointmentId, int skip, int take, CancellationToken ct)
+        DisputeStatus? status, DisputeCategory? category, Guid? assignedAdminId, Guid? appointmentId, int skip, int take, CancellationToken ct)
     {
         var query = db.Disputes.AsNoTracking();
         if (status is { } s)
         {
             query = query.Where(d => d.Status == s);
+        }
+
+        if (category is { } kind)
+        {
+            query = query.Where(d => d.Category == kind);
         }
 
         if (assignedAdminId is { } assignee)
@@ -36,6 +41,14 @@ internal sealed class DisputeRepository(AppDbContext db) : IDisputeRepository
 
         var total = await query.LongCountAsync(ct);
         var items = await query.OrderByDescending(d => d.CreatedAt).ThenBy(d => d.Id).Skip(skip).Take(take).ToListAsync(ct);
+        return (items, total);
+    }
+
+    public async Task<(IReadOnlyList<Dispute> Items, long Total)> ListOpenedByAsync(Guid userId, int skip, int take, CancellationToken ct)
+    {
+        var query = db.Disputes.AsNoTracking().Where(d => d.OpenedByUserId == userId);
+        var total = await query.LongCountAsync(ct);
+        var items = await query.OrderByDescending(d => d.UpdatedAt).ThenBy(d => d.Id).Skip(skip).Take(take).ToListAsync(ct);
         return (items, total);
     }
 

@@ -1,9 +1,10 @@
 using TeleMed.Application.Abstractions;
 using TeleMed.Application.Admin.AdminUsers;
 using TeleMed.Application.Admin.Finance;
-using TeleMed.Application.Appointments;
 using TeleMed.Application.Common;
 using TeleMed.Application.Common.Exceptions;
+using TeleMed.Application.CustomerCare;
+using TeleMed.Application.Notifications;
 using TeleMed.Application.Payments;
 using TeleMed.Domain.Entities;
 using TeleMed.Domain.Enums;
@@ -15,47 +16,36 @@ namespace TeleMed.Application.Admin.Disputes;
 public sealed class DisputeService(
     ICurrentActor actor,
     IDisputeRepository disputes,
-    IAppointmentRepository appointments,
     IAdminUserRepository admins,
     IPaymentRepository payments,
     IFinanceRepository finance,
     PaymentLifecycle lifecycle,
+    INotificationService notifications,
     IUnitOfWork unitOfWork,
     TimeProvider time)
 {
     public async Task<PagedResult<DisputeDto>> ListAsync(DisputeQuery query, CancellationToken ct)
     {
-        var (items, total) = await disputes.ListAsync(query.Status, query.AssignedAdminId, query.AppointmentId, query.Skip, query.PageSize, ct);
+        var (items, total) = await disputes.ListAsync(query.Status, query.Category, query.AssignedAdminId, query.AppointmentId, query.Skip, query.PageSize, ct);
         return new PagedResult<DisputeDto>(items.Select(d => d.ToDto()).ToList(), query.Page, query.PageSize, total);
     }
 
     public async Task<DisputeDetailDto> GetAsync(Guid id, CancellationToken ct) =>
         await DetailAsync(await disputes.FindAsync(id, ct) ?? throw NotFound(), ct);
 
-    public async Task<DisputeDetailDto> CreateAsync(CreateDisputeRequest request, CancellationToken ct)
-    {
-        var admin = actor.RequireAdmin();
-        var appointment = await appointments.FindAsync(request.AppointmentId, ct) ?? throw new NotFoundException("Appointment not found.");
-        var dispute = new Dispute
-        {
-            AppointmentId = appointment.Id,
-            PatientId = appointment.PatientId,
-            DoctorId = appointment.DoctorId,
-            Subject = request.Subject.Trim(),
-            Description = request.Description.Trim(),
-            OpenedByAdminId = admin.Id,
-        };
-        disputes.Add(dispute);
-        await unitOfWork.SaveChangesAsync(ct);
-        return await DetailAsync(dispute, ct);
-    }
-
     public async Task<DisputeCommentDto> AddCommentAsync(Guid id, AddDisputeCommentRequest request, CancellationToken ct)
     {
         var admin = actor.RequireAdmin();
-        _ = await disputes.FindAsync(id, ct) ?? throw NotFound();
+        var dispute = await disputes.FindForUpdateAsync(id, ct) ?? throw NotFound();
+        if (dispute.Status == DisputeStatus.Closed)
+        {
+            throw new ConflictException("conversation_closed", "This conversation is closed.");
+        }
+
         var comment = new DisputeComment { DisputeId = id, AuthorAdminId = admin.Id, Body = request.Body.Trim() };
         disputes.AddComment(comment);
+        dispute.UpdatedAt = time.GetUtcNow();
+        await CustomerCareService.NotifyOpenerAsync(notifications, dispute, ct);
         await unitOfWork.SaveChangesAsync(ct);
         return comment.ToDto();
     }
@@ -85,7 +75,12 @@ public sealed class DisputeService(
         EnsureStatus(dispute, DisputeStatus.Open, DisputeStatus.Investigating);
         if (request.RefundAmountCents is { } amount)
         {
-            var snapshot = await payments.FindByAppointmentAsync(dispute.AppointmentId, ct)
+            if (dispute.AppointmentId is not { } appointmentId)
+            {
+                throw new ConflictException("payment_not_refundable", "This conversation is not tied to an appointment, so a refund cannot be requested here.");
+            }
+
+            var snapshot = await payments.FindByAppointmentAsync(appointmentId, ct)
                 ?? throw new ConflictException("payment_not_refundable", "This appointment has no payment to refund.");
             var payment = (await payments.LockAsync(snapshot.Id, ct))!;
             await lifecycle.StageRequestedRefundAsync(payment, amount, RefundReason.Dispute, request.Resolution.Trim(), admin.Id, dispute.Id, ct);
@@ -123,9 +118,9 @@ public sealed class DisputeService(
     {
         if (!allowed.Contains(dispute.Status))
         {
-            throw new ConflictException("invalid_transition", $"A {dispute.Status} dispute cannot take this action.");
+            throw new ConflictException("invalid_transition", $"A {dispute.Status} case cannot take this action.");
         }
     }
 
-    private static NotFoundException NotFound() => new("Dispute not found.");
+    private static NotFoundException NotFound() => new("Customer care case not found.");
 }

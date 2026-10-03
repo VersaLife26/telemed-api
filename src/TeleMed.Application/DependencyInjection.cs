@@ -15,6 +15,7 @@ using TeleMed.Application.Appointments;
 using TeleMed.Application.Auth;
 using TeleMed.Application.ClinicalNotes;
 using TeleMed.Application.Consultations;
+using TeleMed.Application.CustomerCare;
 using TeleMed.Application.DoctorApplications;
 using TeleMed.Application.Doctors;
 using TeleMed.Application.Jobs;
@@ -85,6 +86,7 @@ public static class DependencyInjection
         services.AddScoped<AdminRefundService>();
         services.AddScoped<PromoCodeService>();
         services.AddScoped<DisputeService>();
+        services.AddScoped<CustomerCareService>();
         services.AddScoped<PlatformUserService>();
         services.AddScoped<AuditService>();
         services.AddScoped<AnalyticsService>();

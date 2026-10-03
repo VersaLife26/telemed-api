@@ -3067,6 +3067,314 @@
         ]
       }
     },
+    "/api/v1/customer-care": {
+      "get": {
+        "tags": [
+          "CustomerCare"
+        ],
+        "operationId": "CustomerCare_List",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfCustomerCareSummaryDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "userBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "CustomerCare"
+        ],
+        "operationId": "CustomerCare_Open",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenCustomerCareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCareThreadDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "userBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/customer-care/{id}": {
+      "get": {
+        "tags": [
+          "CustomerCare"
+        ],
+        "operationId": "CustomerCare_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCareThreadDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "userBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/customer-care/{id}/messages": {
+      "post": {
+        "tags": [
+          "CustomerCare"
+        ],
+        "operationId": "CustomerCare_Reply",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCareMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCareMessageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or not visible to the caller.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "userBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/doctor-applications/eligibility": {
       "get": {
         "tags": [
@@ -9254,6 +9562,13 @@
             }
           },
           {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DisputeCategory"
+            }
+          },
+          {
             "name": "assignedAdminId",
             "in": "query",
             "schema": {
@@ -9319,82 +9634,6 @@
           },
           "403": {
             "description": "The caller may not do this.",
-            "content": {
-              "application/problem\u002Bjson": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "adminCloudflareAccess": []
-          },
-          {
-            "adminLocalJwt": []
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "AdminDisputes"
-        ],
-        "operationId": "AdminDisputes_Create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateDisputeRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DisputeDetailDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failed or the request is malformed.",
-            "content": {
-              "application/problem\u002Bjson": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing, expired or revoked credentials.",
-            "content": {
-              "application/problem\u002Bjson": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "The caller may not do this.",
-            "content": {
-              "application/problem\u002Bjson": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "The current state does not allow this; see \u0060code\u0060.",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -16417,7 +16656,8 @@
           "doctorApplicationSubmitted",
           "doctorNoShow",
           "refundManualRequired",
-          "paymentCaptureFailed"
+          "paymentCaptureFailed",
+          "customerCare"
         ],
         "type": "string"
       },
@@ -17816,26 +18056,6 @@
           }
         }
       },
-      "CreateDisputeRequest": {
-        "required": [
-          "appointmentId",
-          "subject",
-          "description"
-        ],
-        "type": "object",
-        "properties": {
-          "appointmentId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "subject": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
       "CreateHolidayRequest": {
         "required": [
           "date",
@@ -18068,6 +18288,132 @@
           }
         }
       },
+      "CustomerCareMessageDto": {
+        "required": [
+          "id",
+          "body",
+          "fromSupport",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "body": {
+            "type": "string"
+          },
+          "fromSupport": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CustomerCareMessageRequest": {
+        "required": [
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          }
+        }
+      },
+      "CustomerCareSummaryDto": {
+        "required": [
+          "id",
+          "category",
+          "status",
+          "appointmentId",
+          "subject",
+          "lastMessage",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "$ref": "#/components/schemas/DisputeCategory"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DisputeStatus"
+          },
+          "appointmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "lastMessage": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CustomerCareThreadDto": {
+        "required": [
+          "id",
+          "category",
+          "status",
+          "appointmentId",
+          "subject",
+          "createdAt",
+          "updatedAt",
+          "messages"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "$ref": "#/components/schemas/DisputeCategory"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DisputeStatus"
+          },
+          "appointmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCareMessageDto"
+            }
+          }
+        }
+      },
       "DashboardDto": {
         "required": [
           "from",
@@ -18163,10 +18509,23 @@
           }
         }
       },
+      "DisputeCategory": {
+        "enum": [
+          "refund",
+          "appointment",
+          "consultation",
+          "prescription",
+          "account",
+          "technical"
+        ],
+        "type": "string"
+      },
       "DisputeCommentDto": {
         "required": [
           "id",
           "authorAdminId",
+          "authorUserId",
+          "fromSupport",
           "body",
           "createdAt"
         ],
@@ -18177,8 +18536,21 @@
             "format": "uuid"
           },
           "authorAdminId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
+          },
+          "authorUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "fromSupport": {
+            "type": "boolean"
           },
           "body": {
             "type": "string"
@@ -18220,10 +18592,13 @@
           "appointmentId",
           "patientId",
           "doctorId",
+          "category",
+          "openedBy",
           "subject",
           "description",
           "status",
           "openedByAdminId",
+          "openedByUserId",
           "assignedAdminId",
           "resolution",
           "resolvedAt",
@@ -18239,16 +18614,31 @@
             "format": "uuid"
           },
           "appointmentId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "patientId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "doctorId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
+          },
+          "category": {
+            "$ref": "#/components/schemas/DisputeCategory"
+          },
+          "openedBy": {
+            "$ref": "#/components/schemas/DisputeOpener"
           },
           "subject": {
             "type": "string"
@@ -18260,7 +18650,17 @@
             "$ref": "#/components/schemas/DisputeStatus"
           },
           "openedByAdminId": {
-            "type": "string",
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "openedByUserId": {
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           },
           "assignedAdminId": {
@@ -18306,6 +18706,14 @@
             "format": "date-time"
           }
         }
+      },
+      "DisputeOpener": {
+        "enum": [
+          "admin",
+          "patient",
+          "doctor"
+        ],
+        "type": "string"
       },
       "DisputeStatus": {
         "enum": [
@@ -20001,6 +20409,29 @@
         ],
         "type": "string"
       },
+      "OpenCustomerCareRequest": {
+        "required": [
+          "category",
+          "body",
+          "appointmentId"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/DisputeCategory"
+          },
+          "body": {
+            "type": "string"
+          },
+          "appointmentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "OrderSummaryDto": {
         "required": [
           "paymentId",
@@ -20386,6 +20817,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConsultationMessageDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PagedResultOfCustomerCareSummaryDto": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerCareSummaryDto"
             }
           },
           "page": {
@@ -23585,6 +24045,9 @@
     },
     {
       "name": "Consultations"
+    },
+    {
+      "name": "CustomerCare"
     },
     {
       "name": "DoctorApplications"

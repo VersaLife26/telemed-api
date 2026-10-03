@@ -39,6 +39,7 @@ public class NotificationTests(ApiFixture fixture) : IntegrationTest(fixture)
         new DoctorRunningLateModel("Nimal Perera"),
         new EarlyJoinOfferedModel("Nimal Perera", "https://app.telemed.test/join/1"),
         new PaymentRefundedModel(250_000, "LKR"),
+        new CustomerCareReplyModel("Refund / payment"),
     ];
 
     [Fact]

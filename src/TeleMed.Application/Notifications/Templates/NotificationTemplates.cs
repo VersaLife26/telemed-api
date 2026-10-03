@@ -22,6 +22,7 @@ public static class TemplateKeys
     public const string DoctorRunningLate = "doctor_running_late";
     public const string EarlyJoinOffered = "early_join_offered";
     public const string PaymentRefunded = "payment_refunded";
+    public const string CustomerCareReply = "customer_care_reply";
 }
 
 public sealed record EmailText(string Subject, string Body);
@@ -332,6 +333,22 @@ public static class NotificationTemplates
                 [Language.En] = "Your payment of {Amount} arrived after your booking expired, so it has been refunded in full. It may take a few working days to appear.",
                 [Language.Si] = "ඔබගේ {Amount} ගෙවීම වෙන් කිරීම කල් ඉකුත් වූ පසු ලැබුණු බැවින් මුළු මුදලම ආපසු ගෙවා ඇත. ගිණුමට ළඟා වීමට දින කිහිපයක් ගත විය හැකිය.",
                 [Language.Ta] = "உங்கள் முன்பதிவு காலாவதியான பிறகு {Amount} கட்டணம் கிடைத்ததால் முழுத் தொகையும் திருப்பி அளிக்கப்பட்டது. கணக்கில் தோன்ற சில நாட்கள் ஆகலாம்.",
+            }),
+        new(TemplateKeys.CustomerCareReply,
+            Email: new Dictionary<Language, EmailText>
+            {
+                [Language.En] = new("Customer care replied: {Subject}",
+                    "VersaLife customer care replied to your message about {Subject}.\n\nOpen the app and tap the chat button in the bottom-right corner to continue the conversation."),
+                [Language.Si] = new("පාරිභෝගික සේවය පිළිතුරු දුන්නේය: {Subject}",
+                    "VersaLife පාරිභෝගික සේවය ඔබගේ {Subject} පණිවිඩයට පිළිතුරු දී ඇත.\n\nඅඛණ්ඩව කතාබස් කිරීමට යෙදුම විවෘත කර පහළ දකුණු කෙළවරේ ඇති චැට් බොත්තම ඔබන්න."),
+                [Language.Ta] = new("வாடிக்கையாளர் சேவை பதிலளித்துள்ளது: {Subject}",
+                    "VersaLife வாடிக்கையாளர் சேவை உங்கள் {Subject} செய்திக்கு பதிலளித்துள்ளது.\n\nஉரையாடலைத் தொடர செயலியைத் திறந்து கீழ் வலது மூலையிலுள்ள அரட்டை பொத்தானைத் தட்டவும்."),
+            },
+            Sms: new Dictionary<Language, string>
+            {
+                [Language.En] = "Customer care replied about {Subject}. Open the app and tap the chat button to continue.",
+                [Language.Si] = "පාරිභෝගික සේවය {Subject} ගැන පිළිතුරු දුන්නේය. යෙදුමේ චැට් බොත්තම ඔබන්න.",
+                [Language.Ta] = "வாடிக்கையாளர் சேவை {Subject} குறித்து பதிலளித்துள்ளது. செயலியில் அரட்டை பொத்தானைத் தட்டவும்.",
             }),
     }.ToDictionary(t => t.Key);
 }

@@ -7,6 +7,7 @@ using TeleMed.Application.Admin.AdminUsers;
 using TeleMed.Application.Admin.Content;
 using TeleMed.Application.Admin.Disputes;
 using TeleMed.Application.Admin.Finance;
+using TeleMed.Application.CustomerCare;
 using TeleMed.Application.Doctors;
 using TeleMed.Application.Permissions;
 using TeleMed.Application.Scheduling;
@@ -171,8 +172,6 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
             t => $"admin/finance/promo-codes/{t.PromoCodeId}", new { description = "Changed" }),
         new("POST", "admin/finance/promo-codes/{id:guid}/deactivate", AdminPermission.Finance, t => $"admin/finance/promo-codes/{t.PromoCodeId}/deactivate"),
         new("GET", "admin/disputes", AdminPermission.Disputes, _ => "admin/disputes"),
-        new("POST", "admin/disputes", AdminPermission.Disputes, _ => "admin/disputes",
-            new { appointmentId = Guid.Empty, subject = "placeholder", description = "replaced at run time" }),
         new("GET", "admin/disputes/{id:guid}", AdminPermission.Disputes, t => $"admin/disputes/{t.DisputeId}"),
         new("POST", "admin/disputes/{id:guid}/comments", AdminPermission.Disputes, t => $"admin/disputes/{t.DisputeId}/comments", new { body = "Noted" }),
         new("POST", "admin/disputes/{id:guid}/assign", AdminPermission.Disputes, t => $"admin/disputes/{t.DisputeId}/assign", new { }),
@@ -206,9 +205,7 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         foreach (var route in Routes)
         {
             var request = new HttpRequestMessage(new HttpMethod(route.Method), "/api/v1/" + route.Url(target));
-            var body = route.Template == "admin/disputes" && route.Method == "POST"
-                ? new { appointmentId = target.AppointmentId, subject = "Matrix", description = "Opened by the matrix" }
-                : route.Body;
+            var body = route.Body;
             if (route.Template.EndsWith("/image", StringComparison.Ordinal) && route.Method == "PUT")
             {
                 request.Content = DoctorFlows.File(DoctorFlows.Png, "hero.png", "image/png");
@@ -334,14 +331,14 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         var promo = await (await superAdmin.PostJsonAsync("/api/v1/admin/finance/promo-codes",
                 new { code = "MATRIX1", discountType = "percent", percentBps = 500, minAmountCents = 0 }))
             .ReadAsync<PromoCodeDto>(HttpStatusCode.Created);
-        var dispute = await (await superAdmin.PostJsonAsync("/api/v1/admin/disputes",
-                new { appointmentId = appointment.Id, subject = "Matrix", description = "Seeded" }))
-            .ReadAsync<DisputeDetailDto>(HttpStatusCode.Created);
+        var care = await (await patient.Client.PostJsonAsync("/api/v1/customer-care",
+                new { category = "refund", body = "Seeded" }))
+            .ReadAsync<CustomerCareThreadDto>(HttpStatusCode.Created);
         var user = await Factory.CreateUserAsync(UserRole.Patient);
 
         return new Target(
             admin.Id, "matrix_target", drug.Id, waitingRoomItem.Id, reviewed.Id, reviewedDocument.Id, approvable.Id, rejectable.Id, doctorId, doctorDocument.Id, holiday.Id, block.Id,
             appointment.Id, accept.Id, decline.Id, adminNotificationId, batchId, paidPayoutId, failedPayoutId, paymentId, approvableRefund, rejectableRefund,
-            manualRefund, promo.Id, dispute.Dispute.Id, user.User.Id);
+            manualRefund, promo.Id, care.Id, user.User.Id);
     }
 }

@@ -17,11 +17,6 @@ public sealed class AdminDisputesController(DisputeService disputes) : Controlle
     [HttpGet]
     public Task<PagedResult<DisputeDto>> List([FromQuery] DisputeQuery query, CancellationToken ct) => disputes.ListAsync(query, ct);
 
-    [HttpPost]
-    [ProducesResponseType<DisputeDetailDto>(StatusCodes.Status201Created)]
-    public async Task<ObjectResult> Create(CreateDisputeRequest request, CancellationToken ct) =>
-        StatusCode(StatusCodes.Status201Created, await disputes.CreateAsync(request, ct));
-
     [HttpGet("{id:guid}")]
     public Task<DisputeDetailDto> Get(Guid id, CancellationToken ct) => disputes.GetAsync(id, ct);
 

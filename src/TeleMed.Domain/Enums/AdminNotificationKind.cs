@@ -6,4 +6,5 @@ public enum AdminNotificationKind
     DoctorNoShow,
     RefundManualRequired,
     PaymentCaptureFailed,
+    CustomerCare,
 }

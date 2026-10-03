@@ -159,3 +159,13 @@ public sealed record PaymentRefundedModel(long AmountCents, string Currency) : I
         ["Amount"] = NotificationFormat.Money(AmountCents, Currency),
     };
 }
+
+public sealed record CustomerCareReplyModel(string Subject) : INotificationModel
+{
+    public string TemplateKey => TemplateKeys.CustomerCareReply;
+
+    public IReadOnlyDictionary<string, string> Values() => new Dictionary<string, string>
+    {
+        ["Subject"] = Subject,
+    };
+}
