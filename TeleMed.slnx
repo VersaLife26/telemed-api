@@ -8,5 +8,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/TeleMed.Api.IntegrationTests/TeleMed.Api.IntegrationTests.csproj" />
     <Project Path="tests/TeleMed.Domain.Tests/TeleMed.Domain.Tests.csproj" />
+    <Project Path="tests/TeleMed.OpenApi.Tests/TeleMed.OpenApi.Tests.csproj" />
   </Folder>
 </Solution>

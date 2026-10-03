@@ -53,7 +53,7 @@ dotnet test                             # needs Docker (Testcontainers)
 **OpenAPI.** `openapi/v1.json` is checked in, and `OpenApiDocumentTests` fails when it is stale. To regenerate it:
 
 ```bash
-UPDATE_OPENAPI=1 dotnet test --project tests/TeleMed.Api.IntegrationTests --filter-class "*OpenApiDocumentTests"
+UPDATE_OPENAPI=1 dotnet test --project tests/TeleMed.OpenApi.Tests --filter-class "*OpenApiDocumentTests"
 ```
 
 **Migrations**

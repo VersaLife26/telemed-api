@@ -1,11 +1,13 @@
 using System.Text.Json.Nodes;
-using TeleMed.Api.IntegrationTests.Infrastructure;
+using TeleMed.OpenApi.Tests.Infrastructure;
 
-namespace TeleMed.Api.IntegrationTests;
+namespace TeleMed.OpenApi.Tests;
 
-public class OpenApiDocumentTests(ApiFixture fixture) : IntegrationTest(fixture)
+public class OpenApiDocumentTests : IAsyncLifetime, IAsyncDisposable
 {
     public const string UpdateVariable = "UPDATE_OPENAPI";
+
+    private readonly OpenApiExportFactory _factory = new();
 
     private static string CheckedInPath
     {
@@ -21,13 +23,19 @@ public class OpenApiDocumentTests(ApiFixture fixture) : IntegrationTest(fixture)
         }
     }
 
+    public ValueTask InitializeAsync()
+    {
+        _factory.StartServer();
+        return ValueTask.CompletedTask;
+    }
+
     private async Task<string> ServedAsync()
     {
-        var json = await Factory.CreateClient().GetStringAsync("/openapi/v1.json", TestContext.Current.CancellationToken);
+        var json = await _factory.CreateClient().GetStringAsync("/openapi/v1.json", TestContext.Current.CancellationToken);
         return JsonNode.Parse(json)!.ToJsonString(new() { WriteIndented = true }).ReplaceLineEndings("\n") + "\n";
     }
 
-    // Regenerate with: UPDATE_OPENAPI=1 dotnet test --project tests/TeleMed.Api.IntegrationTests --filter-class "*OpenApiDocumentTests"
+    // Regenerate with: UPDATE_OPENAPI=1 dotnet test --project tests/TeleMed.OpenApi.Tests --filter-class "*OpenApiDocumentTests"
     [Fact]
     public async Task Checked_in_openapi_document_matches_the_served_one()
     {
@@ -71,4 +79,6 @@ public class OpenApiDocumentTests(ApiFixture fixture) : IntegrationTest(fixture)
         enums.ShouldNotBeEmpty();
         enums.ShouldAllBe(s => (string?)s.Value!["type"] == "string" && s.Value!["enum"]!.AsArray().All(v => v != null && v.GetValueKind() == System.Text.Json.JsonValueKind.String));
     }
+
+    public async ValueTask DisposeAsync() => await _factory.DisposeAsync();
 }
