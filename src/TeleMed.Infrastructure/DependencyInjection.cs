@@ -22,6 +22,7 @@ using TeleMed.Application.Consultations;
 using TeleMed.Application.DoctorApplications;
 using TeleMed.Application.Doctors;
 using TeleMed.Application.Jobs;
+using TeleMed.Application.MedicalReports;
 using TeleMed.Application.Notifications;
 using TeleMed.Application.Payments;
 using TeleMed.Application.Payouts;
@@ -92,6 +93,7 @@ public static class DependencyInjection
         services.AddScoped<IConsultationRepository, ConsultationRepository>();
         services.AddScoped<IClinicalNoteRepository, ClinicalNoteRepository>();
         services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+        services.AddScoped<IMedicalReportRepository, MedicalReportRepository>();
         services.AddScoped<IVaultRepository, VaultRepository>();
         services.AddScoped<IRecordAccessRepository, RecordAccessRepository>();
         services.AddScoped<IPayoutRepository, PayoutRepository>();
@@ -280,6 +282,8 @@ public static class DependencyInjection
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
         services.AddSingleton<IPrescriptionSigner, HmacPrescriptionSigner>();
         services.AddSingleton<IPrescriptionPdfRenderer, QuestPrescriptionPdfRenderer>();
+        services.AddSingleton<IMedicalReportSigner, HmacMedicalReportSigner>();
+        services.AddSingleton<IMedicalReportPdfRenderer, QuestMedicalReportPdfRenderer>();
     }
 
     private static void AddJob<TJob>(this IServiceCollection services, IConfiguration configuration, TimeSpan defaultInterval)

@@ -6,4 +6,5 @@ public enum RecordResourceType
     Prescription,
     ClinicalNote,
     DoctorDocument,
+    MedicalReport,
 }

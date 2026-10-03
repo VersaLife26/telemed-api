@@ -29,6 +29,7 @@ public class NotificationTests(ApiFixture fixture) : IntegrationTest(fixture)
         ReminderModel.HourBefore("Nimal Perera", SampleTime),
         new PaymentFailedModel(250_000, "LKR"),
         new PrescriptionReadyModel("Nimal Perera", "https://app.telemed.test/prescriptions/1"),
+        new MedicalReportReadyModel("Nimal Perera", "https://app.telemed.test/medical-reports/1"),
         DoctorApplicationModel.Submitted("Nimal Perera"),
         DoctorApplicationModel.Approved("Nimal Perera"),
         DoctorApplicationModel.Rejected("Nimal Perera", "SLMC number could not be verified"),

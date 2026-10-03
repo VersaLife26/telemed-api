@@ -12,6 +12,7 @@ public static class TemplateKeys
     public const string Reminder1h = "reminder_1h";
     public const string PaymentFailed = "payment_failed";
     public const string PrescriptionReady = "prescription_ready";
+    public const string MedicalReportReady = "medical_report_ready";
     public const string DoctorApplicationSubmitted = "doctor_application_submitted";
     public const string DoctorApplicationApproved = "doctor_application_approved";
     public const string DoctorApplicationRejected = "doctor_application_rejected";
@@ -179,6 +180,23 @@ public static class NotificationTemplates
                 [Language.En] = "Your prescription from Dr. {DoctorName} is ready. Download: {DownloadUrl}",
                 [Language.Si] = "ඔබගේ වෛද්‍ය {DoctorName} විසින් නිකුත් කළ බෙහෙත් වට්ටෝරුව සූදානම්. බාගත කරන්න: {DownloadUrl}",
                 [Language.Ta] = "மருத்துவர் {DoctorName} வழங்கிய உங்கள் மருந்துச் சீட்டு தயார். பதிவிறக்கம்: {DownloadUrl}",
+            }),
+
+        new(TemplateKeys.MedicalReportReady,
+            Email: new Dictionary<Language, EmailText>
+            {
+                [Language.En] = new("Your medical report is ready",
+                    "Your medical report from Dr. {DoctorName} is ready. The PDF is attached to this email.\n\nView or download it in VersaLife: {DownloadUrl}"),
+                [Language.Si] = new("ඔබගේ වෛද්‍ය වාර්තාව සූදානම්",
+                    "ඔබගේ වෛද්‍ය {DoctorName} විසින් නිකුත් කළ වෛද්‍ය වාර්තාව සූදානම්. PDF එක මෙම ඊමේල් සමඟ අමුණා ඇත.\n\nVersaLife හි බලන්න හෝ බාගත කරන්න: {DownloadUrl}"),
+                [Language.Ta] = new("உங்கள் மருத்துவ அறிக்கை தயார்",
+                    "மருத்துவர் {DoctorName} வழங்கிய உங்கள் மருத்துவ அறிக்கை தயார். PDF இந்த மின்னஞ்சலுடன் இணைக்கப்பட்டுள்ளது.\n\nVersaLife-இல் பார்க்கவும் அல்லது பதிவிறக்கவும்: {DownloadUrl}"),
+            },
+            Sms: new Dictionary<Language, string>
+            {
+                [Language.En] = "Your medical report from Dr. {DoctorName} is ready. Download: {DownloadUrl}",
+                [Language.Si] = "ඔබගේ වෛද්‍ය {DoctorName} විසින් නිකුත් කළ වෛද්‍ය වාර්තාව සූදානම්. බාගත කරන්න: {DownloadUrl}",
+                [Language.Ta] = "மருத்துவர் {DoctorName} வழங்கிய உங்கள் மருத்துவ அறிக்கை தயார். பதிவிறக்கம்: {DownloadUrl}",
             }),
 
         new(TemplateKeys.DoctorApplicationSubmitted,

@@ -40,6 +40,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     public DbSet<ClinicalNoteRevision> ClinicalNoteRevisions => Set<ClinicalNoteRevision>();
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
+    public DbSet<MedicalReport> MedicalReports => Set<MedicalReport>();
     public DbSet<VaultFolder> VaultFolders => Set<VaultFolder>();
     public DbSet<VaultDocument> VaultDocuments => Set<VaultDocument>();
     public DbSet<RecordAccessLog> RecordAccessLogs => Set<RecordAccessLog>();

@@ -18,6 +18,7 @@ using TeleMed.Application.Consultations;
 using TeleMed.Application.DoctorApplications;
 using TeleMed.Application.Doctors;
 using TeleMed.Application.Jobs;
+using TeleMed.Application.MedicalReports;
 using TeleMed.Application.Notifications;
 using TeleMed.Application.Payments;
 using TeleMed.Application.Payouts;
@@ -70,6 +71,7 @@ public static class DependencyInjection
         services.AddScoped<VaultService>();
         services.AddScoped<ClinicalNoteService>();
         services.AddScoped<PrescriptionService>();
+        services.AddScoped<MedicalReportService>();
         services.AddScoped<ExpireUnpaidBookingsJob>();
         services.AddScoped<PaymentSettlementJob>();
         services.AddScoped<ExpireRescheduleRequestsJob>();

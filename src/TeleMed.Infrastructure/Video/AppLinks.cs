@@ -11,6 +11,8 @@ internal sealed class AppLinks(IOptions<AppLinksOptions> options) : IAppLinks
 
     public string Prescription(Guid prescriptionId) => $"{Base}/prescriptions/{prescriptionId}";
 
+    public string MedicalReport(Guid medicalReportId) => $"{Base}/medical-reports/{medicalReportId}";
+
     public string PasswordReset(UserRole role, string token)
     {
         var origin = role == UserRole.Doctor && options.Value.DoctorAppUrl.Length > 0

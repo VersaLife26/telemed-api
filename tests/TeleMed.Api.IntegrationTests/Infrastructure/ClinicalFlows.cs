@@ -45,6 +45,18 @@ public static class ClinicalFlows
         (await doctor.PutAsync("/api/v1/doctors/me/seal", DoctorFlows.File(DoctorFlows.Png, "seal.png"), Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
+    public static object MedicalReportBody() => new
+    {
+        clinicalImpression = "Acute viral illness",
+        findings = "Fever and myalgia. No respiratory distress.",
+        advice = "Drink more water. Rest.",
+        fitness = "unfit",
+        leaveFrom = "2026-10-03",
+        leaveUntil = "2026-10-04",
+        returnToWorkOn = "2026-10-05",
+        fitnessNotes = "Refrain from commitments and routine work.",
+    };
+
     public static object PrescriptionBody() => new
     {
         items = new object[]

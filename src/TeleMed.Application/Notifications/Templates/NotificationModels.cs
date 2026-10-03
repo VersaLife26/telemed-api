@@ -73,6 +73,17 @@ public sealed record PrescriptionReadyModel(string DoctorName, string DownloadUr
     };
 }
 
+public sealed record MedicalReportReadyModel(string DoctorName, string DownloadUrl) : INotificationModel
+{
+    public string TemplateKey => TemplateKeys.MedicalReportReady;
+
+    public IReadOnlyDictionary<string, string> Values() => new Dictionary<string, string>
+    {
+        ["DoctorName"] = DoctorName,
+        ["DownloadUrl"] = DownloadUrl,
+    };
+}
+
 public sealed record DoctorApplicationModel(string TemplateKey, string DoctorName, string? Reason = null) : INotificationModel
 {
     public static DoctorApplicationModel Submitted(string doctorName) => new(TemplateKeys.DoctorApplicationSubmitted, doctorName);
