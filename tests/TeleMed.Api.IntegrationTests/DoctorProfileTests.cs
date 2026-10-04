@@ -48,7 +48,7 @@ public class DoctorProfileTests(ApiFixture fixture) : IntegrationTest(fixture)
     }
 
     [Theory]
-    [InlineData(49_999)]
+    [InlineData(9_999)]
     [InlineData(5_000_001)]
     public async Task Fee_must_stay_within_platform_caps(long feeCents)
     {
