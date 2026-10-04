@@ -12147,6 +12147,84 @@
         ]
       }
     },
+    "/api/v1/admin/finance/card-hold": {
+      "put": {
+        "tags": [
+          "AdminFinance"
+        ],
+        "operationId": "AdminFinance_UpdateCardHold",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCardHoldRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingSettingsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or the request is malformed.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked credentials.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not do this.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The current state does not allow this; see \u0060code\u0060.",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCloudflareAccess": []
+          },
+          {
+            "adminLocalJwt": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/finance/payout-batches": {
       "get": {
         "tags": [
@@ -16945,7 +17023,8 @@
           "audit",
           "finance",
           "auditExport",
-          "adminUsers"
+          "adminUsers",
+          "cardHold"
         ],
         "type": "string"
       },
@@ -17657,7 +17736,9 @@
       },
       "BillingSettingsDto": {
         "required": [
-          "lkrPerUsd"
+          "lkrPerUsd",
+          "holdLkrWithinSixDays",
+          "holdUsdWithinSixDays"
         ],
         "type": "object",
         "properties": {
@@ -17667,6 +17748,12 @@
               "number"
             ],
             "format": "double"
+          },
+          "holdLkrWithinSixDays": {
+            "type": "boolean"
+          },
+          "holdUsdWithinSixDays": {
+            "type": "boolean"
           }
         }
       },
@@ -20748,7 +20835,8 @@
           "provider",
           "intentCreated",
           "paymentDueAt",
-          "availableProviders"
+          "availableProviders",
+          "cardHold"
         ],
         "type": "object",
         "properties": {
@@ -20816,6 +20904,9 @@
             "items": {
               "$ref": "#/components/schemas/PaymentProvider"
             }
+          },
+          "cardHold": {
+            "type": "boolean"
           }
         }
       },
@@ -23705,6 +23796,21 @@
           "lkrPerUsd": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "UpdateCardHoldRequest": {
+        "required": [
+          "holdLkrWithinSixDays",
+          "holdUsdWithinSixDays"
+        ],
+        "type": "object",
+        "properties": {
+          "holdLkrWithinSixDays": {
+            "type": "boolean"
+          },
+          "holdUsdWithinSixDays": {
+            "type": "boolean"
           }
         }
       },

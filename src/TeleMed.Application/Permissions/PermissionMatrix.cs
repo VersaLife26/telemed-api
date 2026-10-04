@@ -20,6 +20,7 @@ public static class PermissionMatrix
             [AdminPermission.Finance] = [AdminRole.Finance, AdminRole.SuperAdmin],
             [AdminPermission.AuditExport] = [AdminRole.Finance, AdminRole.SuperAdmin],
             [AdminPermission.AdminUsers] = [AdminRole.SuperAdmin],
+            [AdminPermission.CardHold] = [AdminRole.SuperAdmin],
         };
 
     public static bool Allows(AdminRole role, AdminPermission permission) =>

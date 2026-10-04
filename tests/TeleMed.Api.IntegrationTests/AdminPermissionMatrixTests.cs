@@ -32,6 +32,7 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
         [AdminPermission.Finance] = [AdminRole.Finance, AdminRole.SuperAdmin],
         [AdminPermission.AuditExport] = [AdminRole.Finance, AdminRole.SuperAdmin],
         [AdminPermission.AdminUsers] = [AdminRole.SuperAdmin],
+        [AdminPermission.CardHold] = [AdminRole.SuperAdmin],
     };
 
     private sealed record Target(
@@ -154,6 +155,8 @@ public class AdminPermissionMatrixTests(ApiFixture fixture) : IntegrationTest(fi
             t => $"admin/finance/commission/doctors/{t.DoctorId}", new { commissionBps = 1500 }),
         new("GET", "admin/finance/billing", AdminPermission.Finance, _ => "admin/finance/billing"),
         new("PUT", "admin/finance/billing", AdminPermission.Finance, _ => "admin/finance/billing", new { lkrPerUsd = 300 }),
+        new("PUT", "admin/finance/card-hold", AdminPermission.CardHold, _ => "admin/finance/card-hold",
+            new { holdLkrWithinSixDays = false, holdUsdWithinSixDays = false }),
         new("GET", "admin/finance/payout-batches", AdminPermission.Finance, _ => "admin/finance/payout-batches"),
         new("GET", "admin/finance/payout-batches/{id:guid}", AdminPermission.Finance, t => $"admin/finance/payout-batches/{t.PayoutBatchId}"),
         new("POST", "admin/finance/payouts/run", AdminPermission.Finance, _ => "admin/finance/payouts/run", new { }),

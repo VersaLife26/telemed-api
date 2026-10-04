@@ -39,3 +39,20 @@ public class ForeignPricingTests
         ForeignPricing.TryUsdCents(1, 1m, 100_000m).ShouldBeNull();
     }
 }
+
+public class CardHoldTests
+{
+    [Theory]
+    [InlineData("LKR", true, true, false, true)]
+    [InlineData("LKR", true, false, true, false)]
+    [InlineData("USD", true, true, false, false)]
+    [InlineData("USD", true, false, true, true)]
+    [InlineData("usd", true, false, true, true)]
+    [InlineData("LKR", false, true, true, false)]
+    [InlineData("USD", false, true, true, false)]
+    public void Each_currency_has_its_own_switch_and_only_inside_six_days(
+        string currency, bool withinSixDays, bool holdLkr, bool holdUsd, bool expected)
+    {
+        CardHold.Applies(currency, withinSixDays, holdLkr, holdUsd).ShouldBe(expected);
+    }
+}

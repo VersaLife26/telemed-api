@@ -44,7 +44,9 @@ public sealed class ApiFixture : IAsyncLifetime
             SeedSql.Read("specialties.sql"),
             SeedSql.Read("drugs.sql"),
             // Respawn truncates the singleton. Each test starts with no exchange rate.
-            $"INSERT INTO platform_billing_settings (id, lkr_per_usd, created_at, updated_at) VALUES ('{PlatformBillingSettingsConfiguration.SingletonId}', NULL, TIMESTAMPTZ '2026-10-03 00:00:00+00', TIMESTAMPTZ '2026-10-03 00:00:00+00');",
+            // Holds stay on here so the existing suite still exercises a card hold inside six days.
+            // A fresh production database leaves both holds off.
+            $"INSERT INTO platform_billing_settings (id, lkr_per_usd, hold_lkr_within_six_days, hold_usd_within_six_days, created_at, updated_at) VALUES ('{PlatformBillingSettingsConfiguration.SingletonId}', NULL, TRUE, TRUE, TIMESTAMPTZ '2026-10-03 00:00:00+00', TIMESTAMPTZ '2026-10-03 00:00:00+00');",
             "ALTER TABLE audit_logs DISABLE TRIGGER USER;",
             "TRUNCATE audit_logs RESTART IDENTITY;",
             "ALTER TABLE audit_logs ENABLE TRIGGER USER;",

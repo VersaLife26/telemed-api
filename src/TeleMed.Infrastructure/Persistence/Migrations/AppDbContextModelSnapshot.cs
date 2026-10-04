@@ -2662,6 +2662,18 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<bool>("HoldLkrWithinSixDays")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("hold_lkr_within_six_days");
+
+                    b.Property<bool>("HoldUsdWithinSixDays")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("hold_usd_within_six_days");
+
                     b.Property<decimal?>("LkrPerUsd")
                         .HasPrecision(12, 4)
                         .HasColumnType("numeric(12,4)")
@@ -2684,6 +2696,8 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("0199a000-0000-7000-8000-000000000001"),
                             CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            HoldLkrWithinSixDays = false,
+                            HoldUsdWithinSixDays = false,
                             UpdatedAt = new DateTimeOffset(new DateTime(2026, 10, 3, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });

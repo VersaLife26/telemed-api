@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using TeleMed.Api.IntegrationTests.Infrastructure;
+using TeleMed.Application.Admin.Finance;
 using TeleMed.Application.Appointments;
 using TeleMed.Application.Common;
 using TeleMed.Application.Payments;
@@ -63,6 +64,30 @@ public class PaymentTests(ApiFixture fixture) : IntegrationTest(fixture)
         paid.Status.ShouldBe(PaymentStatus.Succeeded);
         paid.CapturedCents.ShouldBe(250_000);
         paid.AuthorizeOnly.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Turning_off_the_lkr_hold_charges_a_near_visit_immediately()
+    {
+        var (_, patient, booked) = await BookAsync();
+        var before = await (await patient.Client.GetAsync($"/api/v1/appointments/{booked.Id}/payment", Ct)).ReadAsync<OrderSummaryDto>();
+        before.CardHold.ShouldBeTrue();
+
+        var finance = await Factory.AdminClientAsync(AdminRole.Finance);
+        (await finance.PutJsonAsync("/api/v1/admin/finance/card-hold", new { holdLkrWithinSixDays = false, holdUsdWithinSixDays = true }))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+
+        var admin = await Factory.AdminClientAsync(AdminRole.SuperAdmin);
+        var saved = await (await admin.PutJsonAsync("/api/v1/admin/finance/card-hold", new { holdLkrWithinSixDays = false, holdUsdWithinSixDays = true }))
+            .ReadAsync<BillingSettingsDto>();
+        saved.HoldLkrWithinSixDays.ShouldBeFalse();
+        saved.HoldUsdWithinSixDays.ShouldBeTrue();
+
+        var summary = await (await patient.Client.GetAsync($"/api/v1/appointments/{booked.Id}/payment", Ct)).ReadAsync<OrderSummaryDto>();
+        summary.CardHold.ShouldBeFalse();
+        var paid = await patient.Client.PayWithMockAsync(booked.Id);
+        paid.AuthorizeOnly.ShouldBeFalse();
+        paid.Status.ShouldBe(PaymentStatus.Succeeded);
     }
 
     [Fact]

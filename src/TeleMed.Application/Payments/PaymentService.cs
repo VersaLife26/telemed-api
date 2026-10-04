@@ -18,6 +18,7 @@ public sealed class PaymentService(
     ICalendarLock calendar,
     IUnitOfWork unitOfWork,
     PaymentLifecycle lifecycle,
+    IBillingSettingsRepository billingSettings,
     TimeProvider time)
 {
 
@@ -114,7 +115,7 @@ public sealed class PaymentService(
         payment.Provider = provider.Provider;
         payment.Status = PaymentStatus.Pending;
         payment.FailureReason = null;
-        payment.AuthorizeOnly = appointment.StartAt - now <= PlatformPolicy.MaxCardHoldLead;
+        payment.AuthorizeOnly = await HoldCardAsync(appointment, payment.Currency, now, ct);
         payment.IntentCreatedAt = now;
         if (await payments.FindLiveRedemptionAsync(payment.Id, ct) is { Status: PromoRedemptionStatus.Reserved } redemption
             && redemption.ExpiresAt < appointment.PaymentDueAt)
@@ -303,7 +304,18 @@ public sealed class PaymentService(
             payment.Provider,
             payment.IntentCreatedAt is not null,
             appointment.PaymentDueAt,
-            providers.Where(p => p.IsEnabled).Select(p => p.Provider).ToList());
+            providers.Where(p => p.IsEnabled).Select(p => p.Provider).ToList(),
+            await HoldCardAsync(appointment, payment.Currency, time.GetUtcNow(), ct));
+    }
+
+    private async Task<bool> HoldCardAsync(Appointment appointment, string currency, DateTimeOffset now, CancellationToken ct)
+    {
+        var settings = await billingSettings.GetAsync(ct);
+        return CardHold.Applies(
+            currency,
+            appointment.StartAt - now <= PlatformPolicy.MaxCardHoldLead,
+            settings.HoldLkrWithinSixDays,
+            settings.HoldUsdWithinSixDays);
     }
 
     private async Task<(Appointment Appointment, Payment Payment)> RequireOwnAsync(Guid appointmentId, CancellationToken ct)

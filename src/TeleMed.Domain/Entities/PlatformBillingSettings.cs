@@ -6,4 +6,8 @@ namespace TeleMed.Domain.Entities;
 public class PlatformBillingSettings : Entity, IAuditable
 {
     public decimal? LkrPerUsd { get; set; }
+
+    // When true, a visit starting within 6 days places a PayHere hold instead of charging now.
+    public bool HoldLkrWithinSixDays { get; set; }
+    public bool HoldUsdWithinSixDays { get; set; }
 }

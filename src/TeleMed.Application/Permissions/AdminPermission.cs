@@ -13,4 +13,5 @@ public enum AdminPermission
     Finance,
     AuditExport,
     AdminUsers,
+    CardHold,
 }

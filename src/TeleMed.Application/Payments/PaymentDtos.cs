@@ -16,7 +16,8 @@ public sealed record OrderSummaryDto(
     PaymentProvider? Provider,
     bool IntentCreated,
     DateTimeOffset? PaymentDueAt,
-    IReadOnlyList<PaymentProvider> AvailableProviders);
+    IReadOnlyList<PaymentProvider> AvailableProviders,
+    bool CardHold);
 
 public sealed record ApplyPromoRequest(string Code);
 

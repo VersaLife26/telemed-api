@@ -50,6 +50,11 @@ public sealed class AdminFinanceController(
     public Task<BillingSettingsDto> UpdateBilling(UpdateBillingSettingsRequest request, CancellationToken ct) =>
         billing.UpdateAsync(request, ct);
 
+    [HttpPut("finance/card-hold")]
+    [AdminAuthorize(AdminPermission.CardHold)]
+    public Task<BillingSettingsDto> UpdateCardHold(UpdateCardHoldRequest request, CancellationToken ct) =>
+        billing.UpdateCardHoldAsync(request, ct);
+
     [HttpGet("finance/payout-batches")]
     public Task<PagedResult<PayoutBatchDto>> ListPayoutBatches([FromQuery] PayoutBatchQuery query, CancellationToken ct) => payouts.ListBatchesAsync(query, ct);
 

@@ -24,10 +24,14 @@ internal sealed class PlatformBillingSettingsConfiguration : IEntityTypeConfigur
         });
 
         builder.Property(s => s.LkrPerUsd).HasPrecision(12, 4);
+        builder.Property(s => s.HoldLkrWithinSixDays).HasDefaultValue(false);
+        builder.Property(s => s.HoldUsdWithinSixDays).HasDefaultValue(false);
         builder.HasData(new PlatformBillingSettings
         {
             Id = SingletonId,
             LkrPerUsd = null,
+            HoldLkrWithinSixDays = false,
+            HoldUsdWithinSixDays = false,
             CreatedAt = SeededAt,
             UpdatedAt = SeededAt,
         });
