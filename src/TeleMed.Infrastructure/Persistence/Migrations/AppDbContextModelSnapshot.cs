@@ -1328,7 +1328,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_doctors_experience_years", "experience_years >= 0");
 
-                            t.HasCheckConstraint("ck_doctors_fee_cents", "fee_cents BETWEEN 50000 AND 5000000");
+                            t.HasCheckConstraint("ck_doctors_fee_cents", "fee_cents BETWEEN 10000 AND 5000000");
 
                             t.HasCheckConstraint("ck_doctors_foreign_multiplier", "foreign_multiplier IS NULL OR (foreign_multiplier >= 1 AND foreign_multiplier <= 100)");
 
@@ -1552,7 +1552,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_doctor_applications_experience_years", "experience_years >= 0");
 
-                            t.HasCheckConstraint("ck_doctor_applications_fee_cents", "fee_cents BETWEEN 50000 AND 5000000");
+                            t.HasCheckConstraint("ck_doctor_applications_fee_cents", "fee_cents BETWEEN 10000 AND 5000000");
 
                             t.HasCheckConstraint("ck_doctor_applications_languages", "cardinality(languages) > 0 AND languages <@ ARRAY['en', 'si', 'ta', 'other']::text[]");
                         });

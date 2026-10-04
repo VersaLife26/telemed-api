@@ -10,7 +10,8 @@ internal static class DoctorRules
     public const int MaxExperienceYears = 70;
 
     public static IRuleBuilderOptions<T, long> ValidFee<T>(this IRuleBuilder<T, long> rule) =>
-        rule.InclusiveBetween(PlatformPolicy.MinFeeCents, PlatformPolicy.MaxFeeCents);
+        rule.InclusiveBetween(PlatformPolicy.MinFeeCents, PlatformPolicy.MaxFeeCents)
+            .WithMessage($"Consultation fee must be between LKR {PlatformPolicy.MinFeeCents / 100} and LKR {PlatformPolicy.MaxFeeCents / 100}.");
 
     public static void LanguageRules<T>(this AbstractValidator<T> validator, Func<T, IReadOnlyList<ConsultationLanguage>?> languages, Func<T, string?> other)
     {

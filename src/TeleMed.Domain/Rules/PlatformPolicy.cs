@@ -32,7 +32,7 @@ public static class PlatformPolicy
     // Leave room for the provider fee so payout never goes negative at the maximum rate.
     public const int MaxCommissionBps = CommissionCalculator.BasisPoints - ProviderFeeBps;
     public const long ProviderFeeFixedCents = 0;
-    public const long MinFeeCents = 50_000;
+    public const long MinFeeCents = 10_000;
     public const long MaxFeeCents = 5_000_000;
 
     public static readonly TimeSpan OtpTtl = TimeSpan.FromMinutes(5);
