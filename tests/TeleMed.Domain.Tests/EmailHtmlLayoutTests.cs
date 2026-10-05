@@ -15,13 +15,14 @@ public class EmailHtmlLayoutTests
     {
         var html = EmailHtmlLayout.Render(Brand, "Test & subject", "Hello <world>\n\nFee: Rs. 100");
 
-        html.ShouldContain("https://app.example/assets/logo-email.png");
-        html.ShouldContain("https://app.example/assets/logo-mark-email.png");
-        html.ShouldContain("linear-gradient(90deg,#015591 0%,#50C898 100%)");
+        html.ShouldContain("VersaLife Health");
+        html.ShouldNotContain("logo-email.png");
+        html.ShouldNotContain("logo-mark-email.png");
         html.ShouldContain("Test &amp; subject");
         html.ShouldContain("Hello &lt;world&gt;");
         html.ShouldContain("Fee: Rs. 100");
-        html.ShouldContain("Open VersaLife");
+        html.ShouldNotContain("Open VersaLife");
+        html.ShouldNotContain("Open link");
     }
 
     [Fact]

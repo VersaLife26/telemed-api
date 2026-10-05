@@ -20,9 +20,7 @@ public static partial class EmailHtmlLayout
     {
         var safeSubject = WebUtility.HtmlEncode(subject);
         var paragraphs = BuildParagraphs(plainBody);
-        var ctaUrl = ExtractFirstUrl(plainBody) ?? brand.AppUrl;
-        var ctaLabel = ctaUrl == brand.AppUrl ? "Open VersaLife" : "Open link";
-        var showCta = !string.IsNullOrWhiteSpace(ctaUrl);
+        var ctaUrl = ExtractFirstUrl(plainBody);
         var year = DateTime.UtcNow.Year;
 
         return $"""
@@ -40,8 +38,8 @@ public static partial class EmailHtmlLayout
                   <td align="center">
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;">
                       <tr>
-                        <td align="center" style="padding:8px 0 24px;">
-                          <img src="{WebUtility.HtmlEncode(brand.HeaderLogoUrl)}" width="93" height="98" alt="{WebUtility.HtmlEncode(brand.ProductName)}" style="display:block;border:0;height:auto;" />
+                        <td align="center" style="padding:8px 0 24px;font-size:18px;font-weight:700;letter-spacing:-0.02em;color:{Primary};">
+                          {WebUtility.HtmlEncode(brand.ProductName)}
                         </td>
                       </tr>
                       <tr>
@@ -61,7 +59,7 @@ public static partial class EmailHtmlLayout
                                 {paragraphs}
                               </td>
                             </tr>
-                            {(showCta ? CtaBlock(brand, ctaUrl, ctaLabel) : "")}
+                            {(ctaUrl is null ? "" : CtaBlock(ctaUrl, "Open link"))}
                           </table>
                         </td>
                       </tr>
@@ -80,24 +78,18 @@ public static partial class EmailHtmlLayout
             """;
     }
 
-    private static string CtaBlock(EmailBrand brand, string url, string label)
+    private static string CtaBlock(string url, string label)
     {
         var safeUrl = WebUtility.HtmlEncode(url);
         var safeLabel = WebUtility.HtmlEncode(label);
-        var safeLogo = WebUtility.HtmlEncode(brand.MarkLogoUrl);
-        var gradient = $"linear-gradient(90deg,{Primary} 0%,{Accent} 100%)";
 
-        // Table wrapper improves gradient + pill shape in Outlook/Gmail; bgcolor is the blue fallback.
         return $"""
           <tr>
             <td align="center" style="padding:0 28px 32px;">
               <table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:separate;">
                 <tr>
-                  <td align="center" bgcolor="{Primary}" style="border-radius:999px;background:{Primary};background-image:{gradient};">
-                    <a href="{safeUrl}" style="display:inline-block;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;line-height:1;padding:14px 26px 14px 22px;border-radius:999px;">
-                      <img src="{safeLogo}" width="22" height="23" alt="" style="display:inline-block;vertical-align:middle;border:0;margin:0 10px 0 0;" />
-                      <span style="display:inline-block;vertical-align:middle;">{safeLabel}</span>
-                    </a>
+                  <td align="center" bgcolor="{Primary}" style="border-radius:999px;background:{Primary};">
+                    <a href="{safeUrl}" style="display:inline-block;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;line-height:1;padding:14px 22px;border-radius:999px;">{safeLabel}</a>
                   </td>
                 </tr>
               </table>

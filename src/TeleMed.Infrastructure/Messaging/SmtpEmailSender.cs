@@ -1,6 +1,7 @@
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using MimeKit.Utils;
 using TeleMed.Application.Abstractions;
 using TeleMed.Infrastructure.Options;
 
@@ -15,9 +16,21 @@ internal sealed class SmtpEmailSender(IOptions<EmailOptions> email, IOptions<App
         var o = email.Value;
         var (_, html) = BrandedEmailBody.Format(email, links, subject, body);
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(o.FromName, o.FromAddress));
+        var from = new MailboxAddress(o.FromName, o.FromAddress);
+        message.From.Add(from);
+        message.ReplyTo.Add(from);
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
+        // A Message-Id on the sending domain, plus the transactional marker, is what
+        // mailbox providers expect from account mail rather than a bulk blast.
+        var at = o.FromAddress.LastIndexOf('@');
+        if (at > 0 && at < o.FromAddress.Length - 1)
+        {
+            message.MessageId = MimeUtils.GenerateMessageId(o.FromAddress[(at + 1)..]);
+        }
+
+        message.Headers.Add("Auto-Submitted", "auto-generated");
+        message.Headers.Add("X-Auto-Response-Suppress", "All");
         var alternative = new MultipartAlternative
         {
             new TextPart("plain") { Text = body },
