@@ -1204,7 +1204,7 @@ namespace TeleMed.Infrastructure.Persistence.Migrations
                     b.Property<int>("MaxPerDay")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(24)
+                        .HasDefaultValue(200)
                         .HasColumnName("max_per_day");
 
                     b.Property<string>("PhotoStorageKey")
