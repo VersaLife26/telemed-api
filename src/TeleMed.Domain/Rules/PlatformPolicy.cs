@@ -7,7 +7,8 @@ public static class PlatformPolicy
 
     public const int DefaultSlotDurationMinutes = 15;
     public const int DefaultBufferMinutes = 5;
-    public const int DefaultMaxPerDay = 24;
+    public const int MaxPerDayLimit = 200;
+    public const int DefaultMaxPerDay = MaxPerDayLimit;
     public const int DefaultAdvanceDays = 30;
 
     public static readonly TimeSpan PaymentWindow = TimeSpan.FromMinutes(15);

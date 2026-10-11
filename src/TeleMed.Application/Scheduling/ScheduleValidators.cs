@@ -11,7 +11,7 @@ public sealed class UpdateScheduleRequestValidator : AbstractValidator<UpdateSch
     {
         RuleFor(x => x.SlotDurationMinutes).InclusiveBetween(5, 240);
         RuleFor(x => x.BufferMinutes).InclusiveBetween(0, 120);
-        RuleFor(x => x.MaxPerDay).InclusiveBetween(1, 200);
+        RuleFor(x => x.MaxPerDay).InclusiveBetween(1, PlatformPolicy.MaxPerDayLimit);
         RuleFor(x => x.AdvanceDays).InclusiveBetween(1, ScheduleLimits.MaxAdvanceDays);
         RuleFor(x => x.Timezone).Must(tz => IanaTimeZone.TryFind(tz, out _)).WithMessage("Timezone must be an IANA time zone such as Asia/Colombo.");
         RuleFor(x => x.WorkingHours).NotNull().Must(h => h is null || h.Count <= MaxWindows).WithMessage($"At most {MaxWindows} working-hour windows.");
